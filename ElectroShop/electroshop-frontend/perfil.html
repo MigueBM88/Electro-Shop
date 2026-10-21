@@ -1,0 +1,178 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ElectroShop - Mi Perfil</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <div class="container">
+    <div id="alerta" class="alert"></div>
+
+    <!-- ====== MODO VER ====== -->
+    <div id="vistaVer">
+      <div class="card">
+        <div class="card-header" style="text-align:left">
+          <h2>👤 Mi Perfil</h2>
+          <p>Tu información personal en ElectroShop</p>
+        </div>
+
+        <div class="profile-field"><span class="label">Nombre</span><span id="vNombre">—</span></div>
+        <div class="profile-field"><span class="label">Correo</span><span id="vCorreo">—</span></div>
+        <div class="profile-field"><span class="label">Teléfono</span><span id="vTelefono">—</span></div>
+        <div class="profile-field"><span class="label">Provincia</span><span id="vProvincia">—</span></div>
+        <div class="profile-field"><span class="label">Cantón</span><span id="vCanton">—</span></div>
+        <div class="profile-field"><span class="label">Distrito</span><span id="vDistrito">—</span></div>
+        <div class="profile-field"><span class="label">Dirección</span><span id="vDetalle">—</span></div>
+        <div class="profile-field"><span class="label">Rol</span><span id="vRol">—</span></div>
+        <div class="profile-field"><span class="label">Miembro desde</span><span id="vFecha">—</span></div>
+
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="activarEdicion()">✏️ Editar Perfil</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== MODO EDITAR ====== -->
+    <div id="vistaEditar" class="hidden">
+      <div class="card">
+        <div class="card-header" style="text-align:left">
+          <h2>✏️ Editar Perfil</h2>
+          <p>Modifica tu información personal</p>
+        </div>
+
+        <form id="formEditar">
+          <div class="form-group">
+            <label>Nombre completo</label>
+            <input type="text" id="eNombre">
+          </div>
+          <div class="form-group">
+            <label>Teléfono (8 dígitos)</label>
+            <input type="text" id="eTelefono" maxlength="8" placeholder="88887777">
+          </div>
+          <div class="form-group">
+            <label>Provincia</label>
+            <input type="text" id="eProvincia" placeholder="Ej: San José">
+          </div>
+          <div class="form-group">
+            <label>Cantón</label>
+            <input type="text" id="eCanton" placeholder="Ej: Central">
+          </div>
+          <div class="form-group">
+            <label>Distrito</label>
+            <input type="text" id="eDistrito" placeholder="Ej: Carmen">
+          </div>
+          <div class="form-group">
+            <label>Dirección detallada</label>
+            <input type="text" id="eDetalle" placeholder="100m norte de...">
+          </div>
+
+          <div class="btn-group">
+            <button type="button" class="btn btn-outline" onclick="cancelarEdicion()">Cancelar</button>
+            <button type="submit" class="btn btn-primary" id="btnGuardar">Guardar cambios</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/utils.js"></script>
+  <script>
+    // Verificar autenticación
+    if (!requiereAuth()) throw 'no auth';
+    renderNavbar('perfil');
+
+    var perfilData = {};
+
+    // Cargar datos del perfil
+    async function cargarPerfil() {
+      try {
+        var r = await apiObtenerPerfil();
+        if (r.exito) {
+          var u = r.datos.usuario;
+          perfilData = u;
+          document.getElementById('vNombre').textContent = u.nombre;
+          document.getElementById('vCorreo').textContent = u.correo;
+          document.getElementById('vTelefono').textContent = u.telefono || 'No registrado';
+          document.getElementById('vProvincia').textContent = (u.direccion && u.direccion.provincia) || '—';
+          document.getElementById('vCanton').textContent = (u.direccion && u.direccion.canton) || '—';
+          document.getElementById('vDistrito').textContent = (u.direccion && u.direccion.distrito) || '—';
+          document.getElementById('vDetalle').textContent = (u.direccion && u.direccion.detalle) || '—';
+          document.getElementById('vRol').innerHTML = rolBadge(u.rol);
+          document.getElementById('vFecha').textContent = formatFecha(u.fechaRegistro);
+        }
+      } catch (e) {
+        mostrarAlerta('alerta', 'error', 'Error al cargar el perfil');
+      }
+    }
+
+    // Activar modo edición
+    function activarEdicion() {
+      document.getElementById('vistaVer').classList.add('hidden');
+      document.getElementById('vistaEditar').classList.remove('hidden');
+      document.getElementById('eNombre').value = perfilData.nombre || '';
+      document.getElementById('eTelefono').value = perfilData.telefono || '';
+      document.getElementById('eProvincia').value = (perfilData.direccion && perfilData.direccion.provincia) || '';
+      document.getElementById('eCanton').value = (perfilData.direccion && perfilData.direccion.canton) || '';
+      document.getElementById('eDistrito').value = (perfilData.direccion && perfilData.direccion.distrito) || '';
+      document.getElementById('eDetalle').value = (perfilData.direccion && perfilData.direccion.detalle) || '';
+      ocultarAlerta('alerta');
+    }
+
+    // Cancelar edición
+    function cancelarEdicion() {
+      document.getElementById('vistaEditar').classList.add('hidden');
+      document.getElementById('vistaVer').classList.remove('hidden');
+      ocultarAlerta('alerta');
+    }
+
+    // Guardar cambios
+    document.getElementById('formEditar').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      var btn = document.getElementById('btnGuardar');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Guardando...';
+
+      var datos = {
+        nombre: document.getElementById('eNombre').value.trim(),
+        telefono: document.getElementById('eTelefono').value.trim(),
+        direccion: {
+          provincia: document.getElementById('eProvincia').value.trim(),
+          canton: document.getElementById('eCanton').value.trim(),
+          distrito: document.getElementById('eDistrito').value.trim(),
+          detalle: document.getElementById('eDetalle').value.trim()
+        }
+      };
+
+      try {
+        var r = await apiEditarPerfil(datos);
+        if (r.exito) {
+          mostrarAlerta('alerta', 'success', '✅ Perfil actualizado exitosamente');
+          cancelarEdicion();
+          await cargarPerfil();
+          // Actualizar nombre en navbar
+          var usr = getUsuario();
+          usr.nombre = datos.nombre;
+          localStorage.setItem('es_user', JSON.stringify(usr));
+        } else {
+          mostrarAlerta('alerta', 'error', r.mensaje);
+        }
+      } catch (e) {
+        mostrarAlerta('alerta', 'error', 'Error de conexión');
+      }
+
+      btn.disabled = false;
+      btn.innerHTML = 'Guardar cambios';
+    });
+
+    // Iniciar
+    cargarPerfil();
+  </script>
+
+</body>
+</html>
+

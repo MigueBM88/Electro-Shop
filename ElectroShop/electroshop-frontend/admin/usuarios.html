@@ -1,0 +1,206 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ElectroShop Admin - Usuarios</title>
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+
+  <div class="container">
+    <h2 style="margin-bottom:0.25rem">👥 Gestión de Usuarios</h2>
+    <p class="text-muted mb-1">Administra los usuarios registrados en ElectroShop</p>
+
+    <div id="alerta" class="alert"></div>
+
+    <!-- Filtros -->
+    <div class="filters-bar">
+      <input type="text" id="fBusqueda" placeholder="🔍 Buscar por nombre o correo...">
+      <select id="fRol">
+        <option value="">Todos los roles</option>
+        <option value="cliente">Cliente</option>
+        <option value="admin">Admin</option>
+        <option value="vendedor">Vendedor</option>
+      </select>
+      <select id="fActivo">
+        <option value="">Todos los estados</option>
+        <option value="true">Activos</option>
+        <option value="false">Inactivos</option>
+      </select>
+    </div>
+
+    <!-- Tabla -->
+    <div class="card">
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Correo</th>
+              <th>Rol</th>
+              <th>Estado</th>
+              <th>Registro</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tablaBody">
+            <tr><td colspan="6" class="text-center text-muted">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="paginacion" class="text-center text-muted mt-1"></div>
+    </div>
+  </div>
+
+  <!-- Modal Cambiar Rol -->
+  <div id="modalRol" class="modal-overlay">
+    <div class="modal">
+      <h3>Cambiar Rol de Usuario</h3>
+      <p class="text-muted mb-1" id="modalNombre"></p>
+      <input type="hidden" id="modalUserId">
+      <div class="form-group">
+        <label>Nuevo rol</label>
+        <select id="modalSelectRol">
+          <option value="cliente">Cliente</option>
+          <option value="admin">Admin</option>
+          <option value="vendedor">Vendedor</option>
+        </select>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-outline" onclick="cerrarModal()">Cancelar</button>
+        <button class="btn btn-primary" onclick="confirmarCambioRol()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script src="../js/utils.js"></script>
+  <script>
+    // Verificar que sea admin
+    if (!requiereAdmin()) throw 'no admin';
+    renderNavbarAdmin('usuarios');
+
+    var paginaActual = 1;
+    var timerBusqueda = null;
+
+    // === Cargar usuarios ===
+    async function cargarUsuarios() {
+      var params = '?pagina=' + paginaActual + '&limite=10';
+      var busqueda = document.getElementById('fBusqueda').value.trim();
+      var rol = document.getElementById('fRol').value;
+      var activo = document.getElementById('fActivo').value;
+
+      if (busqueda) params += '&busqueda=' + encodeURIComponent(busqueda);
+      if (rol) params += '&rol=' + rol;
+      if (activo) params += '&activo=' + activo;
+
+      try {
+        var r = await apiListarUsuarios(params);
+        var tbody = document.getElementById('tablaBody');
+
+        if (r.exito) {
+          var usuarios = r.datos.usuarios;
+
+          if (usuarios.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No se encontraron usuarios</td></tr>';
+            document.getElementById('paginacion').innerHTML = '';
+            return;
+          }
+
+          tbody.innerHTML = usuarios.map(function(u) {
+            var id = u._id || u.id;
+            return '<tr>' +
+              '<td><strong>' + u.nombre + '</strong></td>' +
+              '<td>' + u.correo + '</td>' +
+              '<td>' + rolBadge(u.rol) + '</td>' +
+              '<td>' + estadoBadge(u.activo) + '</td>' +
+              '<td>' + formatFecha(u.fechaRegistro) + '</td>' +
+              '<td>' +
+                '<button class="btn btn-sm btn-primary" onclick="abrirModalRol(\'' + id + '\',\'' + u.nombre + '\',\'' + u.rol + '\')" style="margin-right:0.5rem">Rol</button>' +
+                (u.activo
+                  ? '<button class="btn btn-sm btn-danger" onclick="toggleEstado(\'' + id + '\', false)">Desactivar</button>'
+                  : '<button class="btn btn-sm btn-success" onclick="toggleEstado(\'' + id + '\', true)">Reactivar</button>'
+                ) +
+              '</td>' +
+            '</tr>';
+          }).join('');
+
+          // Paginación
+          var pag = r.datos.paginacion;
+          var pagHTML = 'Página ' + pag.pagina + ' de ' + pag.totalPaginas + ' (' + pag.total + ' usuarios) ';
+          if (pag.pagina > 1) pagHTML += '<button class="btn btn-sm btn-outline" onclick="irPagina(' + (pag.pagina - 1) + ')">← Anterior</button> ';
+          if (pag.pagina < pag.totalPaginas) pagHTML += '<button class="btn btn-sm btn-outline" onclick="irPagina(' + (pag.pagina + 1) + ')">Siguiente →</button>';
+          document.getElementById('paginacion').innerHTML = pagHTML;
+        }
+      } catch (e) {
+        mostrarAlerta('alerta', 'error', 'Error de conexión');
+      }
+    }
+
+    function irPagina(p) { paginaActual = p; cargarUsuarios(); }
+
+    // === Filtros ===
+    document.getElementById('fBusqueda').addEventListener('input', function() {
+      clearTimeout(timerBusqueda);
+      timerBusqueda = setTimeout(function() { paginaActual = 1; cargarUsuarios(); }, 400);
+    });
+    document.getElementById('fRol').addEventListener('change', function() { paginaActual = 1; cargarUsuarios(); });
+    document.getElementById('fActivo').addEventListener('change', function() { paginaActual = 1; cargarUsuarios(); });
+
+    // === Modal Cambiar Rol ===
+    function abrirModalRol(id, nombre, rolActual) {
+      document.getElementById('modalUserId').value = id;
+      document.getElementById('modalNombre').textContent = nombre;
+      document.getElementById('modalSelectRol').value = rolActual;
+      document.getElementById('modalRol').classList.add('visible');
+    }
+
+    function cerrarModal() {
+      document.getElementById('modalRol').classList.remove('visible');
+    }
+
+    async function confirmarCambioRol() {
+      var id = document.getElementById('modalUserId').value;
+      var nuevoRol = document.getElementById('modalSelectRol').value;
+
+      try {
+        var r = await apiCambiarRol(id, nuevoRol);
+        if (r.exito) {
+          mostrarAlerta('alerta', 'success', '✅ ' + r.mensaje);
+        } else {
+          mostrarAlerta('alerta', 'error', r.mensaje);
+        }
+        cerrarModal();
+        cargarUsuarios();
+      } catch (e) {
+        mostrarAlerta('alerta', 'error', 'Error de conexión');
+      }
+    }
+
+    // === Activar / Desactivar ===
+    async function toggleEstado(id, activar) {
+      var msg = activar ? '¿Reactivar este usuario?' : '¿Desactivar este usuario? Se le notificará por correo.';
+      if (!confirm(msg)) return;
+
+      try {
+        var r = activar ? await apiReactivarUsuario(id) : await apiDesactivarUsuario(id);
+        if (r.exito) {
+          mostrarAlerta('alerta', 'success', '✅ ' + r.mensaje);
+        } else {
+          mostrarAlerta('alerta', 'error', r.mensaje);
+        }
+        cargarUsuarios();
+      } catch (e) {
+        mostrarAlerta('alerta', 'error', 'Error de conexión');
+      }
+    }
+
+    // Iniciar
+    cargarUsuarios();
+  </script>
+
+</body>
+</html>
+
