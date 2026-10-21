@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ElectroShop Admin - Productos</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+
+<body>
+
+    <div class="container">
+        <h2 style="margin-bottom:0.25rem">📦 Gestión de Productos</h2>
+        <p class="text-muted mb-1">Crea, edita y administra los productos del catálogo</p>
+
+        <div id="alerta" class="alert"></div>
+
+        <!-- Botón + Filtros -->
+        <button class="btn btn-primary btn-sm mb-1" style="width:auto" onclick="abrirModalCrear()">+ Nuevo Producto</button>
+
+        <div class="filters-bar">
+            <input type="text" id="fBusqueda" placeholder="🔍 Buscar por nombre, SKU o marca...">
+            <select id="fCategoria"><option value="">Todas las categorías</option></select>
+            <select id="fCondicion">
+        <option value="">Todas las condiciones</option>
+        <option value="nuevo">Nuevo</option>
+        <option value="reacondicionado">Reacondicionado</option>
+        <option value="poco_uso">Poco uso</option>
+      </select>
+            <select id="fActivo">
+        <option value="">Todos</option>
+        <option value="true">Activos</option>
+        <option value="false">Inactivos</option>
+      </select>
+        </div>
+
+        <!-- ====== TABLA DE PRODUCTOS ====== -->
+        <div class="card">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Categoría</th>
+                            <th>Precio</th>
+                            <th>Stock</th>
+                            <th>Condición</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaBody">
+                        <tr>
+                            <td colspan="7" class="text-center text-muted">Cargando...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div id="paginacion" class="text-center text-muted mt-1"></div>
+        </div>
+    </div>
+
+    <!-- ====== MODAL CREAR / EDITAR PRODUCTO ====== -->
+    <div id="modalProducto" class="modal-overlay">
+        <div class="modal" style="max-width:600px">
+            <h3 id="modalTitulo">Nuevo Producto</h3>
+            <input type="hidden" id="modalProdId">
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 1rem;">
+                <div class="form-group">
+                    <label>Nombre *</label>
+                    <input type="text" id="prodNombre" placeholder="Arduino Uno R3" required>
+                </div>
+                <div class="form-group">
+                    <label>SKU</label>
+                    <input type="text" id="prodSku" placeholder="ARD-UNO-001">
+                </div>
+                <div class="form-group">
+                    <label>Categoría *</label>
+                    <select id="prodCategoria" required><option value="">Seleccionar...</option></select>
+                </div>
+                <div class="form-group">
+                    <label>Marca</label>
+                    <input type="text" id="prodMarca" placeholder="Arduino" value="Genérico">
+                </div>
+                <div class="form-group">
+                    <label>Precio (₡) *</label>
+                    <input type="number" id="prodPrecio" placeholder="15000" min="0" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label>Stock *</label>
+                    <input type="number" id="prodStock" placeholder="50" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label>Condición</label>
+                    <select id="prodCondicion">
+            <option value="nuevo">Nuevo</option>
+            <option value="reacondicionado">Reacondicionado</option>
+            <option value="poco_uso">Poco uso</option>
+          </select>
+                </div>
+                <div class="form-group">
+                    <label>Precio original (si aplica)</label>
+                    <input type="number" id="prodPrecioOriginal" placeholder="Solo para reacondicionados" min="0" step="0.01">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Descripción *</label>
+                <textarea id="prodDescripcion" placeholder="Descripción detallada del producto..." rows="3"></textarea>
+            </div>
+            <div class="form-group">
+                <label>URL de Datasheet (PDF)</label>
+                <input type="text" id="prodDatasheet" placeholder="https://...pdf">
+            </div>
+            <div class="form-group">
+                <label>Especificaciones (una por línea: Nombre: Valor)</label>
+                <textarea id="prodSpecs" placeholder="Voltaje: 5V&#10;Pines digitales: 14&#10;Pines analógicos: 6" rows="4"></textarea>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-outline" onclick="cerrarModal()">Cancelar</button>
+                <button class="btn btn-primary" onclick="guardarProducto()">Guardar Producto</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script src="../js/utils.js"></script>
+    <script>
+        if (!requiereAdmin()) throw 'no admin';
+        renderNavbarAdmin('productos');
+
+        var paginaActual = 1;
+        var timerBusqueda = null;
+
+        // === Cargar lista de categorías para filtros y modal ===
+        async function cargarSelectCategorias() {
+            try {
+                var r = await apiArbolCategorias(true);
+                if (r.exito) {
+                    var selFiltro = document.getElementById('fCategoria');
+                    var selModal = document.getElementById('prodCategoria');
+
+                    r.datos.arbol.forEach(function(c) {
+                        var id = c._id || c.id;
+                        selFiltro.innerHTML += '<option value="' + id + '">' + (c.icono || '') + ' ' + c.nombre + '</option>';
+                        selModal.innerHTML += '<option value="' + id + '">' + (c.icono || '') + ' ' + c.nombre + '</option>';
+                        if (c.subcategorias) {
+                            c.subcategorias.forEach(function(s) {
+                                var sid = s._id || s.id;
+                                selFiltro.innerHTML += '<option value="' + sid + '"> — ' + s.nombre + '</option>';
+                                selModal.innerHTML += '<option value="' + sid + '"> — ' + s.nombre + '</option>';
+                            });
+                        }
+                    });
+                }
+            } catch (e) { /* ignorar */ }
+        }
+
+        // === Cargar productos ===
+        async function cargarProductos() {
+            var params = '?pagina=' + paginaActual + '&limite=10';
+            var busqueda = document.getElementById('fBusqueda').value.trim();
+            var categoria = document.getElementById('fCategoria').value;
+            var condicion = document.getElementById('fCondicion').value;
+            var activo = document.getElementById('fActivo').value;
+
+            if (busqueda) params += '&busqueda=' + encodeURIComponent(busqueda);
+            if (categoria) params += '&categoria=' + categoria;
+            if (condicion) params += '&condicion=' + condicion;
+            if (activo) params += '&activo=' + activo;
+
+            try {
+                var r = await apiListarProductos(params);
+                var tbody = document.getElementById('tablaBody');
+
+                if (r.exito) {
+                    var productos = r.datos.productos;
+
+                    if (productos.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No se encontraron productos</td></tr>';
+                        document.getElementById('paginacion').innerHTML = '';
+                        return;
+                    }
+
+                    tbody.innerHTML = productos.map(function(p) {
+                        var id = p._id || p.id;
+                        return '<tr>' +
+                            '<td><strong>' + p.nombre + '</strong><br><small class="text-muted">' + (p.sku || '—') + '</small></td>' +
+                            '<td>' + (p.categoriaNombre || '—') + '</td>' +
+                            '<td>₡' + (p.precio != null ? p.precio.toLocaleString() : '—') + '</td>' +
+                            '<td>' + (p.stock != null ? p.stock : '—') + '</td>' +
+                            '<td>' + (p.condicion || '—') + '</td>' +
+                            '<td>' + (p.activo ? '<span class="badge badge-success">Activo</span>' : '<span class="badge badge-danger">Inactivo</span>') + '</td>' +
+                            '<td><button class="btn btn-sm btn-outline" onclick="abrirModalEditar(\'' + id + '\')">Editar</button> ' +
+                            '<button class="btn btn-sm btn-outline" onclick="cambiarEstadoProducto(\'' + id + '\', ' + (!p.activo) + ')">' + (p.activo ? 'Desactivar' : 'Activar') + '</button></td>' +
+                            '</tr>';
+                    }).join('');
+
+                    // Paginación
+                    var pag = r.datos.paginacion;
+                    var pagHtml = '';
+                    for (var i = 1; i <= pag.totalPaginas; i++) {
+                        pagHtml += '<button class="btn btn-sm' + (i === paginaActual ? ' btn-primary' : ' btn-outline') + '" onclick="irPagina(' + i + ')">' + i + '</button> ';
+                    }
+                    document.getElementById('paginacion').innerHTML = pagHtml;
+                }
+            } catch (e) {
+                mostrarAlerta('alerta', 'error', 'Error de conexión');
+            }
+        }
+
+        function irPagina(p) {
+            paginaActual = p;
+            cargarProductos();
+        }
+
+        // Inicializar
+        cargarSelectCategorias();
+        cargarProductos();

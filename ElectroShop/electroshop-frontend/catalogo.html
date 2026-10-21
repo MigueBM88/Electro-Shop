@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ElectroShop - Catálogo</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+
+    <div class="container">
+        <div id="alerta" class="alert"></div>
+
+        <!-- ====== VISTA: CATEGORÍAS PRINCIPALES ====== -->
+        <div id="vistaCategorias">
+            <h2 style="margin-bottom:0.5rem">🛍️ Catálogo de Componentes Electrónicos</h2>
+            <p class="text-muted mb-1">Selecciona una categoría para explorar los productos</p>
+            <div id="gridCategorias" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;">
+                <p class="text-muted">Cargando categorías...</p>
+            </div>
+        </div>
+
+        <!-- ====== VISTA: PRODUCTOS DE UNA CATEGORÍA ====== -->
+        <div id="vistaProductos" class="hidden">
+            <button class="btn btn-outline btn-sm mb-1" onclick="volverACategorias()">← Volver a categorías</button>
+            <h2 id="tituloCategoria" style="margin-bottom:0.5rem"></h2>
+
+            <!-- Subcategorías -->
+            <div id="gridSubcats" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1rem;margin-bottom:1.5rem;"></div>
+
+            <!-- Productos -->
+            <div id="gridProductos" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1.5rem;"></div>
+            <div id="paginacion" class="text-center text-muted mt-1"></div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        if (!requiereAuth()) throw 'no auth';
+        renderNavbar('catalogo');
+
+        // === Cargar categorías principales ===
+        async function cargarCategorias() {
+            try {
+                var r = await apiCategoriasPrincipales();
+                var grid = document.getElementById('gridCategorias');
+
+                if (r.exito) {
+                    if (r.datos.categorias.length === 0) {
+                        grid.innerHTML = '<p class="text-muted">No hay categorías disponibles todavía. El administrador debe crearlas desde el panel admin.</p>';
+                        return;
+                    }
+
+                    grid.innerHTML = r.datos.categorias.map(function(c) {
+                        return '<div style="background:var(--white);border-radius:12px;box-shadow:var(--shadow);padding:1.5rem;text-align:center;cursor:pointer;transition:transform 0.2s" ' +
+                            'onclick="verCategoria(\'' + c._id + '\',\'' + c.nombre + '\',\'' + (c.icono || '📦') + '\')" ' +
+                            'onmouseover="this.style.transform=\'translateY(-3px)\'" onmouseout="this.style.transform=\'none\'">' +
+                            '<div style="font-size:2.5rem;margin-bottom:0.5rem;">' + (c.icono || '📦') + '</div>' +
+                            '<div style="font-weight:600;font-size:1rem;margin-bottom:0.25rem;">' + c.nombre + '</div>' +
+                            '<div style="font-size:0.8rem;color:var(--gray-500);">' + (c.cantidadProductos || 0) + ' productos</div>' +
+                            '</div>';
+                    }).join('');
+                }
+            } catch (e) {
+                mostrarAlerta('alerta', 'error', 'Error al cargar categorías. ¿Está corriendo el backend?');
+            }
+        }
+
+        // === Ver productos de una categoría ===
+        async function verCategoria(id, nombre, icono) {
+            document.getElementById('vistaCategorias').classList.add('hidden');
+            document.getElementById('vistaProductos').classList.remove('hidden');
+            document.getElementById('tituloCategoria').textContent = icono + ' ' + nombre;
+
+            // Cargar subcategorías
+            try {
+                var r = await apiSubcategorias(id);
+                var gridSub = document.getElementById('gridSubcats');
+
+                if (r.exito && r.datos.subcategorias && r.datos.subcategorias.length > 0) {
+                    gridSub.innerHTML = r.datos.subcategorias.map(function(s) {
+                        return '<div style="background:var(--white);border-radius:12px;box-shadow:var(--shadow);padding:1rem;text-align:center;cursor:pointer;transition:transform 0.2s" ' +
+                            'onclick="verCategoria(\'' + s._id + '\',\'' + s.nombre + '\',\'' + (s.icono || '📁') + '\')" ' +
+                            'onmouseover="this.style.transform=\'translateY(-2px)\'" onmouseout="this.style.transform=\'none\'">' +
+                            '<div style="font-size:1.5rem;">' + (s.icono || '📁') + '</div>' +
+                            '<div style="font-weight:600;font-size:0.9rem;">' + s.nombre + '</div>' +
+                            '</div>';
+                    }).join('');
+                } else {
+                    gridSub.innerHTML = '';
+                }
+            } catch (e) { /* ignorar */ }
+
+            // Cargar productos
+            cargarProductosCategoria(id, 1);
+        }
+
+        // === Cargar productos con paginación ===
+        async function cargarProductosCategoria(catId, pagina) {
+            try {
+                var r = await apiProductosPorCategoria(catId, '?pagina=' + pagina + '&limite=8');
+                var grid = document.getElementById('gridProductos');
+
+                if (r.exito) {
+                    if (r.datos.productos.length === 0) {
+                        grid.innerHTML = '<p class="text-muted">No hay productos disponibles en esta categoría</p>';
+                        document.getElementById('paginacion').innerHTML = '';
+                        return;
+                    }
+
+                    grid.innerHTML = r.datos.productos.map(function(p) {
+                        return renderProductCard(p);
+                    }).join('');
+
+                    // Paginación
+                    var pag = r.datos.paginacion;
+                    var pagHTML = 'Página ' + pag.pagina + ' de ' + pag.totalPaginas + ' (' + pag.total + ' productos) ';
+                    if (pag.pagina > 1) pagHTML += '<button class="btn btn-sm btn-outline" onclick="cargarProductosCategoria(\'' + catId + '\',' + (pag.pagina - 1) + ')">← Anterior</button> ';
+                    if (pag.pagina < pag.totalPaginas) pagHTML += '<button class="btn btn-sm btn-outline" onclick="cargarProductosCategoria(\'' + catId + '\',' + (pag.pagina + 1) + ')">Siguiente →</button>';
+                    document.getElementById('paginacion').innerHTML = pagHTML;
+                }
+            } catch (e) {
+                mostrarAlerta('alerta', 'error', 'Error al cargar productos');
+            }
+        }
+
+        // === Volver ===
+        function volverACategorias() {
+            document.getElementById('vistaProductos').classList.add('hidden');
+            document.getElementById('vistaCategorias').classList.remove('hidden');
+        }
+
+        cargarCategorias();
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ElectroShop - Producto</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+
+    <div class="container">
+        <div id="alerta" class="alert"></div>
+
+        <button class="btn btn-outline btn-sm mb-1" onclick="history.back()">← Volver</button>
+
+        <!-- ====== DETALLE DEL PRODUCTO ====== -->
+        <div id="contenido" class="card">
+            <p class="text-muted text-center">Cargando producto...</p>
+        </div>
+
+        <!-- ====== PRODUCTOS RELACIONADOS ====== -->
+        <div id="zonaRelacionados" class="hidden">
+            <h3 style="margin:1.5rem 0 0.75rem">🔗 Productos Relacionados</h3>
+            <div id="gridRelacionados" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1.5rem;"></div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        if (!requiereAuth()) throw 'no auth';
+        renderNavbar('catalogo');
+
+        // Obtener ID del producto de la URL
+        var params = new URLSearchParams(window.location.search);
+        var productoId = params.get('id');
+
+        if (!productoId) {
+            window.location.href = 'catalogo.html';
+        }
+
+        async function cargarProducto() {
+            try {
+                var r = await apiProductoDetalle(productoId);
+
+                if (!r.exito) {
+                    document.getElementById('contenido').innerHTML = '<p class="text-muted text-center">Producto no encontrado</p>';
+                    return;
+                }
+
+                var p = r.datos.producto;
+                document.title = 'ElectroShop - ' + p.nombre;
+
+                // Imagen
+                var imgHTML = (p.imagenes && p.imagenes.length > 0) ?
+                    '<img src="' + p.imagenes[0].url + '" style="width:100%;border-radius:12px;max-height:400px;object-fit:cover;">' :
+                    '<div style="width:100%;height:300px;background:var(--gray-100);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:5rem;color:var(--gray-300);">📦</div>';
+
+                // Precio
+                var precioHTML = '<span style="font-size:1.8rem;font-weight:700;color:var(--primary);">' + formatPrecio(p.precio) + '</span>';
+                if (p.precioOriginal && p.precioOriginal > p.precio) {
+                    var descuento = Math.round((1 - p.precio / p.precioOriginal) * 100);
+                    precioHTML += ' <span style="font-size:1rem;color:var(--gray-500);text-decoration:line-through;">' + formatPrecio(p.precioOriginal) + '</span>';
+                    precioHTML += ' <span class="badge badge-success">-' + descuento + '%</span>';
+                }
+
+                // Stock
+                var stockHTML = '';
+                if (p.estaAgotado) {
+                    stockHTML = '<div class="alert alert-warning visible" style="margin-top:1rem;">⚠️ Este producto está agotado actualmente. No se puede agregar al carrito.</div>';
+                } else {
+                    stockHTML = '<div style="margin-top:1rem;">' + stockBadge(p.stock) + '</div>';
+                }
+
+                // Especificaciones
+                var specsHTML = '';
+                if (p.especificaciones && p.especificaciones.length > 0) {
+                    specsHTML = '<h3 style="margin:1.5rem 0 0.75rem;">📋 Especificaciones Técnicas</h3>' +
+                        '<table style="width:100%;">' +
+                        p.especificaciones.map(function(s) {
+                            return '<tr><td style="padding:0.5rem 0;border-bottom:1px solid var(--gray-100);font-weight:600;color:var(--gray-500);width:40%;font-size:0.85rem;">' + s.nombre + '</td>' +
+                                '<td style="padding:0.5rem 0;border-bottom:1px solid var(--gray-100);">' + s.valor + '</td></tr>';
+                        }).join('') +
+                        '</table>';
+                }
+
+                // Datasheet
+                var datasheetHTML = '';
+                if (p.datasheetUrl) {
+                    datasheetHTML = '<div style="margin-top:1rem;"><a href="' + p.datasheetUrl + '" target="_blank" class="btn btn-outline btn-sm" style="width:auto;">📄 Descargar Datasheet (PDF)</a></div>';
+                }
+
+                // Categoría y condición
+                var catNombre = (p.categoria && p.categoria.nombre) ? p.categoria.nombre : 'Sin categoría';
+                var catIcono = (p.categoria && p.categoria.icono) ? p.categoria.icono : '📦';
+
+                // Construir HTML completo
+                document.getElementById('contenido').innerHTML =
+                    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;">' +
+                    '<div>' + imgHTML + '</div>' +
+                    '<div>' +
+                    '<div style="font-size:0.85rem;color:var(--gray-500);margin-bottom:0.5rem;">' + catIcono + ' ' + catNombre + '</div>' +
+                    '<h2 style="font-size:1.5rem;margin-bottom:0.5rem;">' + p.nombre + '</h2>' +
+                    '<div style="margin-bottom:0.75rem;">' + condicionBadge(p.condicion) + ' <span style="color:var(--gray-500);font-size:0.85rem;">Marca: <strong>' + (p.marca || 'Genérico') + '</strong></span></div>' +
+                    precioHTML +
+                    stockHTML +
+                    '<p style="margin-top:1rem;color:var(--gray-700);line-height:1.7;">' + p.descripcion + '</p>' +
+                    datasheetHTML +
+                    (p.sku ? '<div style="margin-top:1rem;font-size:0.8rem;color:var(--gray-500);">SKU: ' + p.sku + '</div>' : '') +
+                    '</div>' +
+                    '</div>' +
+                    specsHTML;
+
+                // Productos relacionados
+                if (r.datos.relacionados && r.datos.relacionados.length > 0) {
+                    document.getElementById('zonaRelacionados').classList.remove('hidden');
+                    document.getElementById('gridRelacionados').innerHTML = r.datos.relacionados.map(function(p) {
+                        return renderProductCard(p);
+                    }).join('');
+                }
+
+            } catch (e) {
+                mostrarAlerta('alerta', 'error', 'Error al cargar el producto');
+            }
+        }
+
+        cargarProducto();
+    </script>
+
+</body>
+
+</html>

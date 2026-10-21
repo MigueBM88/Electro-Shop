@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ElectroShop - Buscar Productos</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+
+    <div class="container">
+        <h2 style="margin-bottom:0.5rem">🔍 Búsqueda Avanzada</h2>
+        <p class="text-muted mb-1">Encuentra componentes electrónicos por nombre, marca, precio y más</p>
+
+        <div id="alerta" class="alert"></div>
+
+        <!-- ====== FILTROS ====== -->
+        <div class="card">
+            <form id="formBuscar" style="display:flex;flex-wrap:wrap;gap:1rem;align-items:flex-end">
+                <div class="form-group" style="flex:2;min-width:200px;margin-bottom:0">
+                    <label>Buscar</label>
+                    <input type="text" id="fBusqueda" placeholder="Arduino, resistencia, multímetro...">
+                </div>
+                <div class="form-group" style="flex:1;min-width:150px;margin-bottom:0">
+                    <label>Categoría</label>
+                    <select id="fCategoria"><option value="">Todas</option></select>
+                </div>
+                <div class="form-group" style="flex:1;min-width:130px;margin-bottom:0">
+                    <label>Marca</label>
+                    <select id="fMarca"><option value="">Todas</option></select>
+                </div>
+                <div class="form-group" style="flex:0.5;min-width:100px;margin-bottom:0">
+                    <label>Precio mín</label>
+                    <input type="number" id="fPrecioMin" placeholder="0" min="0">
+                </div>
+                <div class="form-group" style="flex:0.5;min-width:100px;margin-bottom:0">
+                    <label>Precio máx</label>
+                    <input type="number" id="fPrecioMax" placeholder="999999" min="0">
+                </div>
+                <div class="form-group" style="flex:1;min-width:130px;margin-bottom:0">
+                    <label>Disponibilidad</label>
+                    <select id="fDisponibilidad">
+            <option value="">Todos</option>
+            <option value="disponible">Disponible</option>
+            <option value="agotado">Agotado</option>
+          </select>
+                </div>
+                <div class="form-group" style="flex:1;min-width:130px;margin-bottom:0">
+                    <label>Condición</label>
+                    <select id="fCondicion">
+            <option value="">Todas</option>
+            <option value="nuevo">Nuevo</option>
+            <option value="reacondicionado">Reacondicionado</option>
+            <option value="poco_uso">Poco uso</option>
+          </select>
+                </div>
+                <div class="form-group" style="flex:1;min-width:130px;margin-bottom:0">
+                    <label>Ordenar por</label>
+                    <select id="fOrdenar">
+            <option value="">Relevancia</option>
+            <option value="precio_asc">Precio: menor a mayor</option>
+            <option value="precio_desc">Precio: mayor a menor</option>
+            <option value="nombre_asc">Nombre A-Z</option>
+            <option value="reciente">Más recientes</option>
+            <option value="calificacion">Mejor calificados</option>
+          </select>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width:auto;padding:0.7rem 2rem;margin-bottom:0">🔍 Buscar</button>
+            </form>
+        </div>
+
+        <!-- ====== RESULTADOS ====== -->
+        <div id="infoResultados" class="text-muted mb-1"></div>
+        <div id="gridResultados" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1.5rem;"></div>
+        <div id="paginacion" class="text-center text-muted mt-1"></div>
+
+        <!-- ====== SUGERENCIAS (sin resultados) ====== -->
+        <div id="zonaSugerencias" class="hidden">
+            <h3 style="margin:1.5rem 0 0.75rem">💡 Te podría interesar</h3>
+            <div id="gridSugerencias" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1.5rem;"></div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        if (!requiereAuth()) throw 'no auth';
+        renderNavbar('buscar');
+
+        // === Cargar opciones de filtros (categorías y marcas) ===
+        async function cargarFiltros() {
+            try {
+                var catRes = await apiArbolCategorias(true);
+                if (catRes.exito) {
+                    var sel = document.getElementById('fCategoria');
+                    catRes.datos.arbol.forEach(function(c) {
+                        sel.innerHTML += '<option value="' + c._id + '">' + (c.icono || '') + ' ' + c.nombre + '</option>';
+                        if (c.subcategorias) {
+                            c.subcategorias.forEach(function(s) {
+                                sel.innerHTML += '<option value="' + s._id + '"> — ' + s.nombre + '</option>';
+                            });
+                        }
+                    });
+                }
+            } catch (e) { /* ignorar */ }
+
+            try {
+                var marcaRes = await apiMarcas();
+                if (marcaRes.exito) {
+                    var sel = document.getElementById('fMarca');
+                    marcaRes.datos.marcas.forEach(function(m) {
+                        sel.innerHTML += '<option value="' + m + '">' + m + '</option>';
+                    });
+                }
+            } catch (e) { /* ignorar */ }
+        }
+
+        // === Buscar productos ===
+        async function buscar(pagina) {
+            var params = new URLSearchParams();
+            var q = document.getElementById('fBusqueda').value.trim();
+            if (q) params.set('q', q);
+            if (document.getElementById('fCategoria').value) params.set('categoria', document.getElementById('fCategoria').value);
+            if (document.getElementById('fMarca').value) params.set('marca', document.getElementById('fMarca').value);
+            if (document.getElementById('fPrecioMin').value) params.set('precioMin', document.getElementById('fPrecioMin').value);
+            if (document.getElementById('fPrecioMax').value) params.set('precioMax', document.getElementById('fPrecioMax').value);
+            if (document.getElementById('fDisponibilidad').value) params.set('disponibilidad', document.getElementById('fDisponibilidad').value);
+            if (document.getElementById('fCondicion').value) params.set('condicion', document.getElementById('fCondicion').value);
+            if (document.getElementById('fOrdenar').value) params.set('ordenar', document.getElementById('fOrdenar').value);
+            params.set('pagina', pagina || 1);
+            params.set('limite', 12);
+
+            try {
+                var r = await apiBuscarProductos('?' + params.toString());
+                var grid = document.getElementById('gridResultados');
+                var info = document.getElementById('infoResultados');
+
+                if (r.exito) {
+                    var pag = r.datos.paginacion;
+
+                    if (r.datos.productos.length === 0) {
+                        grid.innerHTML = '<p class="text-muted">No se encontraron resultados para tu búsqueda</p>';
+                        info.textContent = '0 resultados';
+                        document.getElementById('paginacion').innerHTML = '';
+
+                        // Mostrar sugerencias
+                        if (r.datos.sugerencias && r.datos.sugerencias.length > 0) {
+                            document.getElementById('zonaSugerencias').classList.remove('hidden');
+                            document.getElementById('gridSugerencias').innerHTML = r.datos.sugerencias.map(function(p) {
+                                return renderProductCard(p);
+                            }).join('');
+                        }
+                    } else {
+                        document.getElementById('zonaSugerencias').classList.add('hidden');
+                        info.textContent = pag.total + ' resultado(s) encontrado(s)';
+                        grid.innerHTML = r.datos.productos.map(function(p) {
+                            return renderProductCard(p);
+                        }).join('');
+
+                        // Paginación
+                        var pagHTML = 'Pág. ' + pag.pagina + ' de ' + pag.totalPaginas + ' ';
+                        if (pag.pagina > 1) pagHTML += '<button class="btn btn-sm btn-outline" onclick="buscar(' + (pag.pagina - 1) + ')">← Anterior</button> ';
+                        if (pag.pagina < pag.totalPaginas) pagHTML += '<button class="btn btn-sm btn-outline" onclick="buscar(' + (pag.pagina + 1) + ')">Siguiente →</button>';
+                        document.getElementById('paginacion').innerHTML = pagHTML;
+                    }
+                }
+            } catch (e) {
+                mostrarAlerta('alerta', 'error', 'Error de conexión al buscar');
+            }
+        }
+
+        // === Submit del formulario ===
+        document.getElementById('formBuscar').addEventListener('submit', function(e) {
+            e.preventDefault();
+            buscar(1);
+        });
+
+        cargarFiltros();
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ElectroShop Admin - Categorías</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+
+<body>
+
+    <div class="container">
+        <h2 style="margin-bottom:0.25rem">📂 Gestión de Categorías</h2>
+        <p class="text-muted mb-1">Crea, edita y organiza las categorías del catálogo</p>
+
+        <div id="alerta" class="alert"></div>
+
+        <button class="btn btn-primary btn-sm mb-1" style="width:auto" onclick="abrirModalCrear()">+ Nueva Categoría</button>
+
+        <!-- ====== ÁRBOL DE CATEGORÍAS ====== -->
+        <div class="card">
+            <div id="arbolCategorias">
+                <p class="text-muted">Cargando categorías...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====== MODAL CREAR / EDITAR ====== -->
+    <div id="modalCategoria" class="modal-overlay">
+        <div class="modal">
+            <h3 id="modalTitulo">Nueva Categoría</h3>
+            <input type="hidden" id="modalCatId">
+            <div class="form-group">
+                <label>Nombre</label>
+                <input type="text" id="catNombre" placeholder="Ej: Componentes Pasivos" required>
+            </div>
+            <div class="form-group">
+                <label>Descripción (opcional)</label>
+                <input type="text" id="catDescripcion" placeholder="Breve descripción">
+            </div>
+            <div class="form-group">
+                <label>Ícono (emoji)</label>
+                <input type="text" id="catIcono" placeholder="Ej: 🔌" maxlength="5" value="📦">
+            </div>
+            <div class="form-group">
+                <label>Categoría padre (dejar vacío si es principal)</label>
+                <select id="catPadre"><option value="">— Ninguna (categoría principal) —</option></select>
+            </div>
+            <div class="form-group">
+                <label>Orden de visualización</label>
+                <input type="number" id="catOrden" value="0" min="0">
+            </div>
+            <div class="form-group">
+                <label>
+          <input type="checkbox" id="catTradeIn"> Es categoría de Trade-In / Reacondicionados
+        </label>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-outline" onclick="cerrarModal()">Cancelar</button>
+                <button class="btn btn-primary" id="btnGuardarCat" onclick="guardarCategoria()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script src="../js/utils.js"></script>
+    <script>
+        if (!requiereAdmin()) throw 'no admin';
+        renderNavbarAdmin('categorias');
+
+        var categoriasLista = [];
+
+        // === Cargar árbol de categorías ===
+        async function cargarArbol() {
+            try {
+                var r = await apiArbolCategorias(false);
+                if (r.exito) {
+                    categoriasLista = r.datos.arbol;
+                    var contenedor = document.getElementById('arbolCategorias');
+
+                    if (r.datos.arbol.length === 0) {
+                        contenedor.innerHTML = '<p class="text-muted">No hay categorías creadas. ¡Crea la primera!</p>';
+                        return;
+                    }
+
+                    var html = '';
+                    r.datos.arbol.forEach(function(cat) {
+                        html += renderTreeItem(cat, false);
+                        if (cat.subcategorias) {
+                            cat.subcategorias.forEach(function(sub) {
+                                html += renderTreeItem(sub, true);
+                            });
+                        }
+                    });
+                    contenedor.innerHTML = html;
+
+                    // Actualizar select de padre en modal
+                    actualizarSelectPadre();
+                }
+            } catch (e) {
+                mostrarAlerta('alerta', 'error', 'Error al cargar categorías');
+            }
+        }
+
+        function renderTreeItem(cat, esSub) {
+            var id = cat._id || cat.id;
+            return '<div style="padding:0.6rem 1rem;border:1px solid var(--gray-200);border-radius:var(--radius);margin-bottom:0.5rem;display:flex;align-items:center;justify-content:space-between;background:var(--white);' + (esSub ? 'margin-left:2rem;border-left:3px solid var(--primary-light);' : '') + '">' +
+                '<div style="display:flex;align-items:center;gap:0.75rem;">' +
+                '<span style="font-size:1.3rem;">' + (cat.icono || '📦') + '</span>' +
+                '<div>' +
+                '<strong>' + cat.nombre + '</strong>' +
+                (cat.esTradeIn ? ' <span class="badge badge-warning">Trade-In</span>' : '') +
+                (!cat.activa ? ' <span class="badge badge-danger">Inactiva</span>' : '') +
+                '<div style="font-size:0.75rem;color:var(--gray-500);">Orden: ' + cat.orden + (cat.cantidadProductos ? ' · ' + cat.cantidadProductos + ' productos' : '') + '</div>' +
+                '</div>' +
+                '</div>' +
+                '<div style="display:flex;gap:0.5rem;">' +
+                '<button class="btn btn-sm btn-primary" onclick="abrirModalEditar(\'' + id + '\')">Editar</button>' +
+                '<button class="btn btn-sm btn-danger" onclick="eliminarCat(\'' + id + '\',\'' + cat.nombre + '\')">Eliminar</button>' +
+                '</div>' +
+                '</div>';
+        }
+
+        function actualizarSelectPadre() {
+            var sel = document.getElementById('catPadre');
+            sel.innerHTML = '<option value="">— Ninguna (categoría principal) —</option>';
+            categoriasLista.forEach(function(cat) {
+                sel.innerHTML += '<option value="' + (cat._id || cat.id) + '">' + (cat.icono || '') + ' ' + cat.nombre + '</option>';
+            });
+        }
+
+        // === Modal crear ===
+        function abrirModalCrear() {
+            document.getElementById('modalTitulo').textContent = 'Nueva Categoría';
+            document.getElementById('modalCatId').value = '';
+            document.getElementById('catNombre').value = '';
+            document.getElementById('catDescripcion').value = '';
+            document.getElementById('catIcono').value = '📦';
+            document.getElementById('catPadre').value = '';
+            document.getElementById('catOrden').value = '0';
+            document.getElementById('catTradeIn').checked = false;
+            document.getElementById('modalCategoria').classList.add('visible');
+        }
+
+        // === Modal editar ===
+        function abrirModalEditar(id) {
+            // Buscar la categoría en la lista
+            var cat = buscarCategoria(id);
+            if (!cat) return;
+
+            document.getElementById('modalTitulo').textContent = 'Editar Categoría';
+            document.getElementById('modalCatId').value = id;
+            document.getElementById('catNombre').value = cat.nombre || '';
+            document.getElementById('catDescripcion').value = cat.descripcion || '';
+            document.getElementById('catIcono').value = cat.icono || '📦';
+            document.getElementById('catPadre').value = cat.categoriaPadre || '';
+            document.getElementById('catOrden').value = cat.orden || 0;
+            document.getElementById('catTradeIn').checked = cat.esTradeIn || false;
+            document.getElementById('modalCategoria').classList.add('visible');
+        }
+
+        function buscarCategoria(id) {
+            for (var i = 0; i < categoriasLista.length; i++) {
+                if ((categoriasLista[i]._id || categoriasLista[i].id) === id) return categoriasLista[i];
+                if (categoriasLista[i].subcategorias) {
+                    for (var j = 0; j < categoriasLista[i].subcategorias.length; j++) {
+                        var sub = categoriasLista[i].subcategorias[j];
+                        if ((sub._id || sub.id) === id) return sub;
+                    }
+                }
+            }
+            return null;
+        }
+
+        function cerrarModal() {
+            document.getElementById('modalCategoria').classList.remove('visible');
+        }
+
+        // === Guardar (crear o editar) ===
+        async function guardarCategoria() {
+            var id = document.getElementById('modalCatId').value;
+            var datos = {
+                nombre: document.getElementById('catNombre').value.trim(),
+                descripcion: document.getElementById('catDescripcion').value.trim(),
+                icono: document.getElementById('catIcono').value.trim() || '📦',
+                categoriaPadre: document.getElementById('catPadre').value || null,
+                orden: parseInt(document.getElementById('catOrden').value) || 0,
+                esTradeIn: document.getElementById('catTradeIn').checked
+            };
+
+            if (!datos.nombre) {
+                alert('El nombre es obligatorio');
+                return;
+            }
+
+            try {
+                var r;
+                if (id) {
+                    r = await apiEditarCategoria(id, datos);
+                } else {
+                    r = await apiCrearCategoria(datos);
+                }
+
+                if (r.exito) {
+                    mostrarAlerta('alerta', 'success', '✅ ' + r.mensaje);
+                    cerrarModal();
+                    cargarArbol();
+                } else {
+                    mostrarAlerta('alerta', 'error', r.mensaje);
+                }
+            } catch (e) {
+                mostrarAlerta('alerta', 'error', 'Error de conexión');
+            }
+        }
+
+        // === Eliminar ===
+        async function eliminarCat(id, nombre) {
+            if (!confirm('¿Eliminar la categoría "' + nombre + '"?')) return;
+
+            try {
+                var r = await apiEliminarCategoria(id);
+                if (r.exito) {
+                    mostrarAlerta('alerta', 'success', '✅ ' + r.mensaje);
+                    cargarArbol();
+                } else {
+                    mostrarAlerta('alerta', 'error', r.mensaje);
+                }
+            } catch (e) {
+                mostrarAlerta('alerta', 'error', 'Error de conexión');
+            }
+        }
+
+        cargarArbol();
+    </script>
+
+</body>
+
+</html>
