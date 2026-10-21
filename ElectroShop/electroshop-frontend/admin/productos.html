@@ -16,7 +16,6 @@
 
         <div id="alerta" class="alert"></div>
 
-        <!-- Botón + Filtros -->
         <button class="btn btn-primary btn-sm mb-1" style="width:auto" onclick="abrirModalCrear()">+ Nuevo Producto</button>
 
         <div class="filters-bar">
@@ -35,7 +34,7 @@
       </select>
         </div>
 
-        <!-- ====== TABLA DE PRODUCTOS ====== -->
+        <!-- TABLA -->
         <div class="card">
             <div class="table-container">
                 <table>
@@ -61,7 +60,7 @@
         </div>
     </div>
 
-    <!-- ====== MODAL CREAR / EDITAR PRODUCTO ====== -->
+    <!-- MODAL CREAR / EDITAR -->
     <div id="modalProducto" class="modal-overlay">
         <div class="modal" style="max-width:600px">
             <h3 id="modalTitulo">Nuevo Producto</h3>
@@ -135,14 +134,13 @@
         var paginaActual = 1;
         var timerBusqueda = null;
 
-        // === Cargar lista de categorías para filtros y modal ===
+        // === Cargar selects de categorías ===
         async function cargarSelectCategorias() {
             try {
                 var r = await apiArbolCategorias(true);
                 if (r.exito) {
                     var selFiltro = document.getElementById('fCategoria');
                     var selModal = document.getElementById('prodCategoria');
-
                     r.datos.arbol.forEach(function(c) {
                         var id = c._id || c.id;
                         selFiltro.innerHTML += '<option value="' + id + '">' + (c.icono || '') + ' ' + c.nombre + '</option>';
@@ -159,7 +157,7 @@
             } catch (e) { /* ignorar */ }
         }
 
-        // === Cargar productos ===
+        // === Cargar tabla de productos ===
         async function cargarProductos() {
             var params = '?pagina=' + paginaActual + '&limite=10';
             var busqueda = document.getElementById('fBusqueda').value.trim();
@@ -173,7 +171,7 @@
             if (activo) params += '&activo=' + activo;
 
             try {
-                var r = await apiListarProductos(params);
+                var r = await apiListarProductosAdmin(params);
                 var tbody = document.getElementById('tablaBody');
 
                 if (r.exito) {
@@ -187,25 +185,29 @@
 
                     tbody.innerHTML = productos.map(function(p) {
                         var id = p._id || p.id;
+                        var catNombre = (p.categoria && p.categoria.nombre) ? p.categoria.nombre : 'Sin categoría';
                         return '<tr>' +
-                            '<td><strong>' + p.nombre + '</strong><br><small class="text-muted">' + (p.sku || '—') + '</small></td>' +
-                            '<td>' + (p.categoriaNombre || '—') + '</td>' +
-                            '<td>₡' + (p.precio != null ? p.precio.toLocaleString() : '—') + '</td>' +
-                            '<td>' + (p.stock != null ? p.stock : '—') + '</td>' +
-                            '<td>' + (p.condicion || '—') + '</td>' +
-                            '<td>' + (p.activo ? '<span class="badge badge-success">Activo</span>' : '<span class="badge badge-danger">Inactivo</span>') + '</td>' +
-                            '<td><button class="btn btn-sm btn-outline" onclick="abrirModalEditar(\'' + id + '\')">Editar</button> ' +
-                            '<button class="btn btn-sm btn-outline" onclick="cambiarEstadoProducto(\'' + id + '\', ' + (!p.activo) + ')">' + (p.activo ? 'Desactivar' : 'Activar') + '</button></td>' +
+                            '<td><strong>' + p.nombre + '</strong><br><span class="text-muted" style="font-size:0.75rem">' + (p.marca || '') + ' · SKU: ' + (p.sku || '—') + '</span></td>' +
+                            '<td>' + catNombre + '</td>' +
+                            '<td>' + formatPrecio(p.precio) + '</td>' +
+                            '<td>' + stockBadge(p.stock) + '</td>' +
+                            '<td>' + condicionBadge(p.condicion) + '</td>' +
+                            '<td>' + estadoBadge(p.activo) + '</td>' +
+                            '<td>' +
+                            '<button class="btn btn-sm btn-primary" onclick="abrirModalEditar(\'' + id + '\')" style="margin-right:0.4rem;margin-bottom:0.3rem">Editar</button>' +
+                            '<button class="btn btn-sm btn-danger" onclick="eliminarProd(\'' + id + '\',\'' + p.nombre.replace(/'/g, "\\'") + '\')">Eliminar</button>' +
+                            '</td>' +
                             '</tr>';
                     }).join('');
 
                     // Paginación
                     var pag = r.datos.paginacion;
-                    var pagHtml = '';
-                    for (var i = 1; i <= pag.totalPaginas; i++) {
-                        pagHtml += '<button class="btn btn-sm' + (i === paginaActual ? ' btn-primary' : ' btn-outline') + '" onclick="irPagina(' + i + ')">' + i + '</button> ';
-                    }
-                    document.getElementById('paginacion').innerHTML = pagHtml;
+                    var pagHTML = 'Página ' + pag.pagina + ' de ' + pag.totalPaginas + ' (' + pag.total + ' productos) ';
+                    if (pag.pagina > 1) pagHTML += '<button class="btn btn-sm btn-outline" onclick="irPagina(' + (pag.pagina - 1) + ')">← Anterior</button> ';
+                    if (pag.pagina < pag.totalPaginas) pagHTML += '<button class="btn btn-sm btn-outline" onclick="irPagina(' + (pag.pagina + 1) + ')">Siguiente →</button>';
+                    document.getElementById('paginacion').innerHTML = pagHTML;
+                } else {
+                    mostrarAlerta('alerta', 'error', r.mensaje);
                 }
             } catch (e) {
                 mostrarAlerta('alerta', 'error', 'Error de conexión');
@@ -217,6 +219,175 @@
             cargarProductos();
         }
 
-        // Inicializar
+        // === Filtros ===
+        document.getElementById('fBusqueda').addEventListener('input', function() {
+            clearTimeout(timerBusqueda);
+            timerBusqueda = setTimeout(function() {
+                paginaActual = 1;
+                cargarProductos();
+            }, 400);
+        });
+        document.getElementById('fCategoria').addEventListener('change', function() {
+            paginaActual = 1;
+            cargarProductos();
+        });
+        document.getElementById('fCondicion').addEventListener('change', function() {
+            paginaActual = 1;
+            cargarProductos();
+        });
+        document.getElementById('fActivo').addEventListener('change', function() {
+            paginaActual = 1;
+            cargarProductos();
+        });
+
+        // === Modal Crear ===
+        function abrirModalCrear() {
+            document.getElementById('modalTitulo').textContent = 'Nuevo Producto';
+            document.getElementById('modalProdId').value = '';
+            document.getElementById('prodNombre').value = '';
+            document.getElementById('prodSku').value = '';
+            document.getElementById('prodCategoria').value = '';
+            document.getElementById('prodMarca').value = 'Genérico';
+            document.getElementById('prodPrecio').value = '';
+            document.getElementById('prodStock').value = '';
+            document.getElementById('prodCondicion').value = 'nuevo';
+            document.getElementById('prodPrecioOriginal').value = '';
+            document.getElementById('prodDescripcion').value = '';
+            document.getElementById('prodDatasheet').value = '';
+            document.getElementById('prodSpecs').value = '';
+            document.getElementById('modalProducto').classList.add('visible');
+        }
+
+        // === Modal Editar ===
+        async function abrirModalEditar(id) {
+            try {
+                var r = await apiProductoDetalle(id);
+                if (!r.exito) {
+                    mostrarAlerta('alerta', 'error', 'No se pudo cargar el producto');
+                    return;
+                }
+
+                var p = r.datos.producto;
+                document.getElementById('modalTitulo').textContent = 'Editar Producto';
+                document.getElementById('modalProdId').value = id;
+                document.getElementById('prodNombre').value = p.nombre || '';
+                document.getElementById('prodSku').value = p.sku || '';
+                document.getElementById('prodCategoria').value = (p.categoria && (p.categoria._id || p.categoria.id || p.categoria)) || '';
+                document.getElementById('prodMarca').value = p.marca || 'Genérico';
+                document.getElementById('prodPrecio').value = p.precio || '';
+                document.getElementById('prodStock').value = p.stock || 0;
+                document.getElementById('prodCondicion').value = p.condicion || 'nuevo';
+                document.getElementById('prodPrecioOriginal').value = p.precioOriginal || '';
+                document.getElementById('prodDescripcion').value = p.descripcion || '';
+                document.getElementById('prodDatasheet').value = p.datasheetUrl || '';
+
+                // Especificaciones a texto
+                var specsTexto = '';
+                if (p.especificaciones && p.especificaciones.length > 0) {
+                    specsTexto = p.especificaciones.map(function(s) {
+                        return s.nombre + ': ' + s.valor;
+                    }).join('\n');
+                }
+                document.getElementById('prodSpecs').value = specsTexto;
+
+                document.getElementById('modalProducto').classList.add('visible');
+            } catch (e) {
+                mostrarAlerta('alerta', 'error', 'Error de conexión');
+            }
+        }
+
+        function cerrarModal() {
+            document.getElementById('modalProducto').classList.remove('visible');
+        }
+
+        // === Guardar producto (crear o editar) ===
+        async function guardarProducto() {
+            var id = document.getElementById('modalProdId').value;
+
+            var nombre = document.getElementById('prodNombre').value.trim();
+            var categoria = document.getElementById('prodCategoria').value;
+            var precio = document.getElementById('prodPrecio').value;
+            var stock = document.getElementById('prodStock').value;
+            var descripcion = document.getElementById('prodDescripcion').value.trim();
+
+            if (!nombre || !categoria || !precio || stock === '' || !descripcion) {
+                alert('Completa todos los campos obligatorios (*)');
+                return;
+            }
+
+            // Parsear especificaciones
+            var specsTexto = document.getElementById('prodSpecs').value.trim();
+            var especificaciones = [];
+            if (specsTexto) {
+                specsTexto.split('\n').forEach(function(linea) {
+                    var partes = linea.split(':');
+                    if (partes.length >= 2) {
+                        especificaciones.push({
+                            nombre: partes[0].trim(),
+                            valor: partes.slice(1).join(':').trim()
+                        });
+                    }
+                });
+            }
+
+            var datos = {
+                nombre: nombre,
+                sku: document.getElementById('prodSku').value.trim(),
+                categoria: categoria,
+                marca: document.getElementById('prodMarca').value.trim() || 'Genérico',
+                precio: parseFloat(precio),
+                stock: parseInt(stock),
+                condicion: document.getElementById('prodCondicion').value,
+                descripcion: descripcion,
+                datasheetUrl: document.getElementById('prodDatasheet').value.trim(),
+                especificaciones: especificaciones
+            };
+
+            var precioOrig = document.getElementById('prodPrecioOriginal').value;
+            if (precioOrig) datos.precioOriginal = parseFloat(precioOrig);
+
+            try {
+                var r;
+                if (id) {
+                    r = await apiEditarProducto(id, datos);
+                } else {
+                    r = await apiCrearProducto(datos);
+                }
+
+                if (r.exito) {
+                    mostrarAlerta('alerta', 'success', '✅ ' + r.mensaje);
+                    cerrarModal();
+                    cargarProductos();
+                } else {
+                    mostrarAlerta('alerta', 'error', r.mensaje);
+                }
+            } catch (e) {
+                mostrarAlerta('alerta', 'error', 'Error de conexión');
+            }
+        }
+
+        // === Eliminar producto ===
+        async function eliminarProd(id, nombre) {
+            if (!confirm('¿Eliminar el producto "' + nombre + '"? Esta acción no se puede deshacer.')) return;
+
+            try {
+                var r = await apiEliminarProducto(id);
+                if (r.exito) {
+                    mostrarAlerta('alerta', 'success', '✅ ' + r.mensaje);
+                    cargarProductos();
+                } else {
+                    mostrarAlerta('alerta', 'error', r.mensaje);
+                }
+            } catch (e) {
+                mostrarAlerta('alerta', 'error', 'Error de conexión');
+            }
+        }
+
+        // === Iniciar ===
         cargarSelectCategorias();
         cargarProductos();
+    </script>
+
+</body>
+
+</html>
