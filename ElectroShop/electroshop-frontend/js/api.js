@@ -13,7 +13,7 @@ function guardarSesion(token, usuario) { localStorage.setItem('es_token', token)
 
 function cerrarSesion() { localStorage.removeItem('es_token');
     localStorage.removeItem('es_user');
-    window.location.href = '/index.html'; }
+    window.location.href = '/public/index.html'; }
 
 function estaLogueado() { return !!getToken(); }
 

@@ -67,7 +67,7 @@
                     alerta.textContent = '✅ ' + r.mensaje;
                     alerta.className = 'alert alert-success visible';
                     setTimeout(function() {
-                        window.location.href = r.datos.usuario.rol === 'admin' ? 'admin/usuarios.html' : 'perfil.html';
+                        window.location.href = r.datos.usuario.rol === 'admin' ? '../admin/usuarios.html' : 'perfil.html';
                     }, 800);
                 } else {
                     var msg = r.mensaje;

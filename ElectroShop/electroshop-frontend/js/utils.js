@@ -3,7 +3,9 @@
 // ============================================
 
 var esAdmin = window.location.pathname.includes('/admin/');
-var prefix = esAdmin ? '../' : '';
+// Las páginas de usuario viven en /public/. Desde /admin/ hay que subir un
+// nivel y entrar a public/. Dentro de /public/ el prefix queda vacío.
+var prefix = esAdmin ? '../public/' : '';
 
 // === Navbar USUARIO ===
 function renderNavbar(paginaActiva) {
@@ -16,7 +18,8 @@ function renderNavbar(paginaActiva) {
         { href: prefix + 'perfil.html', texto: '👤 Perfil', id: 'perfil' }
     ];
     if (usuario.rol === 'admin') {
-        links.push({ href: prefix + 'admin/usuarios.html', texto: '⚙️ Admin', id: 'admin' });
+        // Desde /public/ hay que subir un nivel para llegar a /admin/
+        links.push({ href: '../admin/usuarios.html', texto: '⚙️ Admin', id: 'admin' });
     }
 
     var linksHTML = links.map(function(l) {
@@ -44,7 +47,7 @@ function renderNavbarAdmin(paginaActiva) {
         { href: 'usuarios.html', texto: '👥 Usuarios', id: 'usuarios' },
         { href: 'categorias.html', texto: '📂 Categorías', id: 'categorias' },
         { href: 'productos.html', texto: '📦 Productos', id: 'productos' },
-        { href: '../catalogo.html', texto: '← Tienda', id: 'tienda' }
+        { href: '../public/catalogo.html', texto: '← Tienda', id: 'tienda' }
     ];
 
     var linksHTML = links.map(function(l) {

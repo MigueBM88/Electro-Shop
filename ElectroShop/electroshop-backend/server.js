@@ -26,6 +26,12 @@ app.use('/api/auth', require('./routes/authRoutes'));
 // Rutas de Administración de Usuarios (Panel Administrativo HU-2)
 app.use('/api/admin/users', require('./routes/adminUserRoutes'));
 
+// Rutas de Categorías (público + admin)
+app.use('/api/categorias', require('./routes/categoriaRoutes'));
+
+// Rutas de Productos (público + admin)
+app.use('/api/productos', require('./routes/productoRoutes'));
+
 // Ruta de prueba
 app.get('/', (req, res) => {
   res.json({

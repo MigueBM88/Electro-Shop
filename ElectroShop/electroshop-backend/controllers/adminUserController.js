@@ -88,6 +88,17 @@ const cambiarRolUsuario = async (req, res) => {
       return res.status(404).json({ exito: false, mensaje: 'Usuario no encontrado' });
     }
 
+    // Seguridad: no permitir degradar al ÚLTIMO administrador activo del sistema
+    if (usuario.rol === 'admin' && rol !== 'admin') {
+      const totalAdmins = await User.countDocuments({ rol: 'admin', activo: true });
+      if (totalAdmins <= 1) {
+        return res.status(400).json({
+          exito: false,
+          mensaje: 'No se puede cambiar el rol: debe existir al menos un administrador activo en el sistema'
+        });
+      }
+    }
+
     const rolAnterior = usuario.rol;
     usuario.rol = rol;
     await usuario.save();
@@ -121,6 +132,17 @@ const desactivarUsuario = async (req, res) => {
 
     if (!usuario.activo) {
       return res.status(400).json({ exito: false, mensaje: 'La cuenta del usuario ya se encuentra desactivada' });
+    }
+
+    // Seguridad: no permitir desactivar al ÚLTIMO administrador activo del sistema
+    if (usuario.rol === 'admin') {
+      const totalAdmins = await User.countDocuments({ rol: 'admin', activo: true });
+      if (totalAdmins <= 1) {
+        return res.status(400).json({
+          exito: false,
+          mensaje: 'No se puede desactivar: debe existir al menos un administrador activo en el sistema'
+        });
+      }
     }
 
     usuario.activo = false;
