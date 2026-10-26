@@ -25,6 +25,12 @@
             <h3 style="margin:1.5rem 0 0.75rem">🔗 Productos Relacionados</h3>
             <div id="gridRelacionados" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1.5rem;"></div>
         </div>
+
+        <!-- ====== RESEÑAS ====== -->
+        <div id="zonaResenas" style="margin-top:1.5rem">
+            <h3 style="margin:1.5rem 0 0.75rem">⭐ Reseñas y calificaciones</h3>
+            <div id="contenidoResenas"><p class="text-muted">Cargando reseñas...</p></div>
+        </div>
     </div>
 
     <script src="../js/api.js"></script>
@@ -66,12 +72,16 @@
                     precioHTML += ' <span class="badge badge-success">-' + descuento + '%</span>';
                 }
 
-                // Stock
+                // Stock + agregar al carrito
                 var stockHTML = '';
-                if (p.estaAgotado) {
+                if (p.stock <= 0) {
                     stockHTML = '<div class="alert alert-warning visible" style="margin-top:1rem;">⚠️ Este producto está agotado actualmente. No se puede agregar al carrito.</div>';
                 } else {
-                    stockHTML = '<div style="margin-top:1rem;">' + stockBadge(p.stock) + '</div>';
+                    stockHTML = '<div style="margin-top:1rem;">' + stockBadge(p.stock) + '</div>' +
+                        '<div style="display:flex;gap:0.5rem;align-items:center;margin-top:1rem;">' +
+                        '<input type="number" id="cantidadAgregar" value="1" min="1" max="' + p.stock + '" style="width:80px">' +
+                        '<button class="btn btn-primary" style="width:auto" onclick="agregarAlCarrito()">🛒 Agregar al carrito</button>' +
+                        '</div>';
                 }
 
                 // Especificaciones
@@ -127,6 +137,82 @@
         }
 
         cargarProducto();
+        cargarResenas();
+
+        async function agregarAlCarrito() {
+            var cant = parseInt(document.getElementById('cantidadAgregar').value) || 1;
+            try {
+                var r = await apiAgregarAlCarrito(productoId, cant);
+                if (r.exito) {
+                    mostrarAlerta('alerta', 'success', '✅ Producto agregado al carrito. <a href="carrito.html">Ver carrito</a>');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                } else {
+                    mostrarAlerta('alerta', 'danger', r.mensaje || 'No se pudo agregar al carrito');
+                }
+            } catch (e) {
+                mostrarAlerta('alerta', 'danger', 'Error de conexión con el servidor');
+            }
+        }
+
+        // ===== RESEÑAS =====
+        function estrellasHTML(n) {
+            var s = '';
+            for (var i = 1; i <= 5; i++) s += (i <= n ? '★' : '☆');
+            return '<span style="color:#f5a623">' + s + '</span>';
+        }
+
+        async function cargarResenas() {
+            var cont = document.getElementById('contenidoResenas');
+            try {
+                var r = await apiResenasProducto(productoId);
+                if (!r.exito) { cont.innerHTML = '<p class="text-muted">No se pudieron cargar las reseñas.</p>'; return; }
+
+                var resumen = r.datos.resumen;
+                var resenas = r.datos.resenas;
+
+                var cabecera = '<div class="card" style="margin-bottom:1rem">' +
+                    '<div style="font-size:1.5rem;font-weight:700">' + (resumen.total ? resumen.promedio.toFixed(1) : '—') + ' ' + estrellasHTML(Math.round(resumen.promedio)) + '</div>' +
+                    '<div class="text-muted" style="font-size:0.85rem">' + resumen.total + ' reseña(s)</div>' +
+                    '</div>';
+
+                // Formulario para dejar reseña
+                var form = '<div class="card" style="margin-bottom:1rem">' +
+                    '<h4 style="margin-bottom:0.5rem">Deja tu reseña</h4>' +
+                    '<div class="form-group"><label>Calificación</label>' +
+                    '<select id="miCalificacion"><option value="5">★★★★★ (5)</option><option value="4">★★★★ (4)</option><option value="3">★★★ (3)</option><option value="2">★★ (2)</option><option value="1">★ (1)</option></select></div>' +
+                    '<div class="form-group"><label>Comentario (opcional)</label><textarea id="miComentario" rows="3" placeholder="¿Qué te pareció el producto?"></textarea></div>' +
+                    '<button class="btn btn-primary btn-sm" style="width:auto" onclick="enviarResena()">Publicar reseña</button>' +
+                    '</div>';
+
+                var lista = resenas.length === 0
+                    ? '<p class="text-muted">Todavía no hay reseñas. ¡Sé el primero!</p>'
+                    : resenas.map(function(re) {
+                        var verif = re.compraVerificada ? ' <span class="badge badge-success" style="font-size:0.6rem">Compra verificada</span>' : '';
+                        return '<div class="card" style="margin-bottom:0.75rem">' +
+                            '<div style="display:flex;justify-content:space-between;align-items:center">' +
+                            '<strong>' + (re.nombreUsuario || 'Usuario') + '</strong>' + estrellasHTML(re.calificacion) + '</div>' +
+                            verif +
+                            (re.comentario ? '<p style="margin-top:0.4rem;font-size:0.9rem">' + re.comentario + '</p>' : '') +
+                            '<div class="text-muted" style="font-size:0.72rem;margin-top:0.3rem">' + formatFecha(re.createdAt) + '</div>' +
+                            '</div>';
+                    }).join('');
+
+                cont.innerHTML = cabecera + form + lista;
+            } catch (e) {
+                cont.innerHTML = '<p class="text-muted">Error de conexión al cargar reseñas.</p>';
+            }
+        }
+
+        async function enviarResena() {
+            var datos = {
+                productoId: productoId,
+                calificacion: parseInt(document.getElementById('miCalificacion').value),
+                comentario: document.getElementById('miComentario').value.trim()
+            };
+            var r = await apiCrearResena(datos);
+            if (r.exito) { mostrarAlerta('alerta', 'success', '¡Gracias por tu reseña!'); cargarResenas(); }
+            else mostrarAlerta('alerta', 'danger', r.mensaje || 'No se pudo publicar la reseña');
+        }
     </script>
 
 </body>

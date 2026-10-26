@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ElectroShop Admin - Reseñas</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+
+<body>
+
+    <div class="container">
+        <h2 style="margin-bottom:0.25rem">⭐ Moderación de Reseñas</h2>
+        <p class="text-muted mb-1">Publica u oculta reseñas de los clientes</p>
+        <div id="alerta" class="alert"></div>
+
+        <div class="filters-bar">
+            <select id="fEstado" onchange="cargar()">
+                <option value="">Todas</option>
+                <option value="publicada">Publicadas</option>
+                <option value="oculta">Ocultas</option>
+            </select>
+        </div>
+
+        <div class="card">
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>Producto</th><th>Usuario</th><th>Calif.</th><th>Comentario</th><th>Estado</th><th>Acción</th></tr></thead>
+                    <tbody id="tablaBody"><tr><td colspan="6" class="text-center text-muted">Cargando...</td></tr></tbody>
+                </table>
+            </div>
+            <div id="paginacion" class="text-center text-muted mt-1"></div>
+        </div>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script src="../js/utils.js"></script>
+    <script>
+        if (!requiereAdmin()) throw 'no admin';
+        renderNavbarAdmin('resenas');
+
+        var paginaActual = 1;
+
+        function estrellas(n) {
+            var s = '';
+            for (var i = 1; i <= 5; i++) s += (i <= n ? '★' : '☆');
+            return '<span style="color:#f5a623">' + s + '</span>';
+        }
+
+        async function cargar() {
+            var tbody = document.getElementById('tablaBody');
+            var params = '?pagina=' + paginaActual + '&limite=20';
+            var estado = document.getElementById('fEstado').value;
+            if (estado) params += '&estado=' + estado;
+
+            var r = await apiListarResenasAdmin(params);
+            if (!r.exito) { tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Error</td></tr>'; return; }
+
+            var resenas = r.datos.resenas;
+            if (resenas.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No hay reseñas</td></tr>';
+                document.getElementById('paginacion').innerHTML = '';
+                return;
+            }
+
+            tbody.innerHTML = resenas.map(function(re) {
+                var prod = re.producto ? re.producto.nombre : '—';
+                var verif = re.compraVerificada ? ' <span class="badge badge-success" style="font-size:0.6rem">Compra verificada</span>' : '';
+                var estBadge = re.estado === 'publicada' ? '<span class="badge badge-success">Publicada</span>' : '<span class="badge badge-danger">Oculta</span>';
+                var accion = re.estado === 'publicada'
+                    ? '<button class="btn btn-sm btn-outline" onclick="moderar(\'' + re._id + '\',\'oculta\')">Ocultar</button>'
+                    : '<button class="btn btn-sm btn-primary" onclick="moderar(\'' + re._id + '\',\'publicada\')">Publicar</button>';
+                return '<tr>' +
+                    '<td>' + prod + '</td>' +
+                    '<td>' + (re.nombreUsuario || '—') + verif + '</td>' +
+                    '<td>' + estrellas(re.calificacion) + '</td>' +
+                    '<td style="max-width:280px;font-size:0.82rem">' + (re.comentario || '<span class="text-muted">(sin comentario)</span>') + '</td>' +
+                    '<td>' + estBadge + '</td>' +
+                    '<td>' + accion + ' <button class="btn btn-sm btn-danger" onclick="eliminar(\'' + re._id + '\')">🗑️</button></td>' +
+                    '</tr>';
+            }).join('');
+
+            var pag = r.datos.paginacion;
+            var h = 'Página ' + pag.pagina + ' de ' + pag.totalPaginas + ' (' + pag.total + ') ';
+            if (pag.pagina > 1) h += '<button class="btn btn-sm btn-outline" onclick="irPagina(' + (pag.pagina - 1) + ')">← Anterior</button> ';
+            if (pag.pagina < pag.totalPaginas) h += '<button class="btn btn-sm btn-outline" onclick="irPagina(' + (pag.pagina + 1) + ')">Siguiente →</button>';
+            document.getElementById('paginacion').innerHTML = h;
+        }
+
+        function irPagina(n) { paginaActual = n; cargar(); }
+
+        async function moderar(id, estado) {
+            var r = await apiModerarResena(id, estado);
+            if (r.exito) mostrarAlerta('alerta', 'success', r.mensaje); else mostrarAlerta('alerta', 'danger', r.mensaje);
+            cargar();
+        }
+        async function eliminar(id) {
+            if (!confirm('¿Eliminar esta reseña permanentemente?')) return;
+            var r = await apiEliminarResena(id);
+            if (r.exito) mostrarAlerta('alerta', 'success', 'Reseña eliminada'); else mostrarAlerta('alerta', 'danger', r.mensaje);
+            cargar();
+        }
+
+        cargar();
+    </script>
+</body>
+
+</html>

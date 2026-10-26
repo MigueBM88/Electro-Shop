@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ElectroShop Vendedor - Mis Ventas</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+
+<body>
+
+    <div class="container">
+        <h2 style="margin-bottom:0.25rem">💰 Mis Ventas</h2>
+        <p class="text-muted mb-1">Pedidos que incluyen tus productos</p>
+        <div id="alerta" class="alert"></div>
+
+        <div id="totalVendido" class="card" style="text-align:center;max-width:300px;margin-bottom:1.5rem"></div>
+
+        <div id="lista"><p class="text-muted">Cargando...</p></div>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/estadoPedido.js"></script>
+    <script>
+        if (!requiereVendedor()) throw 'no vendedor';
+        renderNavbarVendedor('ventas');
+
+        async function cargar() {
+            var cont = document.getElementById('lista');
+            var r = await apiVendedorVentas();
+            if (!r.exito) { cont.innerHTML = '<p class="text-muted">Error al cargar.</p>'; return; }
+
+            document.getElementById('totalVendido').innerHTML =
+                '<div style="font-size:1.6rem;font-weight:700;color:var(--success)">' + formatPrecio(r.datos.totalVendido) + '</div>' +
+                '<div class="text-muted" style="font-size:0.8rem">Total vendido (pedidos confirmados)</div>';
+
+            var ventas = r.datos.ventas;
+            if (ventas.length === 0) { cont.innerHTML = '<p class="text-muted">Aún no tienes ventas.</p>'; return; }
+
+            cont.innerHTML = ventas.map(function(v) {
+                var lineas = v.lineas.map(function(l) {
+                    return '<div style="display:flex;justify-content:space-between;font-size:0.85rem"><span>' + l.cantidad + '× ' + l.nombre + '</span><span>' + formatPrecio(l.subtotal) + '</span></div>';
+                }).join('');
+                return '<div class="card" style="margin-bottom:0.75rem">' +
+                    '<div style="display:flex;justify-content:space-between;align-items:center">' +
+                    '<strong>' + v.numero + '</strong>' + estadoPedidoBadge(v.estado) + '</div>' +
+                    '<div class="text-muted" style="font-size:0.78rem;margin:0.2rem 0 0.5rem">' + formatFecha(v.fecha) + ' · Cliente: ' + v.cliente + '</div>' +
+                    lineas +
+                    '<hr style="margin:0.5rem 0"><div style="display:flex;justify-content:space-between;font-weight:700"><span>Tu subtotal</span><span style="color:var(--primary)">' + formatPrecio(v.subtotalVendedor) + '</span></div>' +
+                    '</div>';
+            }).join('');
+        }
+
+        cargar();
+    </script>
+</body>
+
+</html>

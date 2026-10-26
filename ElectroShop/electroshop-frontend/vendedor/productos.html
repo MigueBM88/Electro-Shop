@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ElectroShop Vendedor - Mis Productos</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+
+<body>
+
+    <div class="container">
+        <h2 style="margin-bottom:0.25rem">📦 Mis Productos</h2>
+        <p class="text-muted mb-1">Gestiona los productos de tu tienda</p>
+        <div id="alerta" class="alert"></div>
+
+        <button class="btn btn-primary btn-sm mb-1" style="width:auto" onclick="abrirCrear()">+ Nuevo Producto</button>
+
+        <div class="card">
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>Producto</th><th>Categoría</th><th>Precio</th><th>Stock</th><th>Estado</th><th>Acciones</th></tr></thead>
+                    <tbody id="tablaBody"><tr><td colspan="6" class="text-center text-muted">Cargando...</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL -->
+    <div id="modal" class="modal-overlay">
+        <div class="modal" style="max-width:560px">
+            <h3 id="modalTitulo">Nuevo Producto</h3>
+            <input type="hidden" id="prodId">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 1rem">
+                <div class="form-group"><label>Nombre *</label><input type="text" id="pNombre"></div>
+                <div class="form-group"><label>SKU</label><input type="text" id="pSku"></div>
+                <div class="form-group"><label>Categoría *</label><select id="pCategoria"><option value="">Seleccionar...</option></select></div>
+                <div class="form-group"><label>Marca</label><input type="text" id="pMarca" value="Genérico"></div>
+                <div class="form-group"><label>Precio (₡) *</label><input type="number" id="pPrecio" min="0"></div>
+                <div class="form-group"><label>Stock *</label><input type="number" id="pStock" min="0"></div>
+                <div class="form-group"><label>Condición</label>
+                    <select id="pCondicion"><option value="nuevo">Nuevo</option><option value="reacondicionado">Reacondicionado</option><option value="poco_uso">Poco uso</option></select>
+                </div>
+            </div>
+            <div class="form-group"><label>Descripción *</label><textarea id="pDescripcion" rows="3"></textarea></div>
+            <div class="btn-group">
+                <button class="btn btn-outline" onclick="cerrar()">Cancelar</button>
+                <button class="btn btn-primary" onclick="guardar()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script src="../js/utils.js"></script>
+    <script>
+        if (!requiereVendedor()) throw 'no vendedor';
+        renderNavbarVendedor('productos');
+
+        async function cargarCategorias() {
+            var r = await apiArbolCategorias(true);
+            if (!r.exito) return;
+            var sel = document.getElementById('pCategoria');
+            r.datos.arbol.forEach(function(c) {
+                var id = c._id || c.id;
+                sel.innerHTML += '<option value="' + id + '">' + (c.icono || '') + ' ' + c.nombre + '</option>';
+                if (c.subcategorias) c.subcategorias.forEach(function(s) {
+                    sel.innerHTML += '<option value="' + (s._id || s.id) + '"> — ' + s.nombre + '</option>';
+                });
+            });
+        }
+
+        async function cargar() {
+            var tbody = document.getElementById('tablaBody');
+            var r = await apiVendedorProductos();
+            if (!r.exito) { tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Error</td></tr>'; return; }
+            var ps = r.datos.productos;
+            if (ps.length === 0) { tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Aún no tienes productos. ¡Crea el primero!</td></tr>'; return; }
+            tbody.innerHTML = ps.map(function(p) {
+                var cat = p.categoria ? p.categoria.nombre : '—';
+                return '<tr>' +
+                    '<td><strong>' + p.nombre + '</strong><br><span class="text-muted" style="font-size:0.72rem">' + (p.marca || '') + '</span></td>' +
+                    '<td>' + cat + '</td><td>' + formatPrecio(p.precio) + '</td><td>' + stockBadge(p.stock) + '</td><td>' + estadoBadge(p.activo) + '</td>' +
+                    '<td><button class="btn btn-sm btn-primary" onclick=\'editar(' + JSON.stringify(p) + ')\'>Editar</button> ' +
+                    '<button class="btn btn-sm btn-danger" onclick="eliminar(\'' + p._id + '\')">🗑️</button></td></tr>';
+            }).join('');
+        }
+
+        function abrirCrear() {
+            document.getElementById('modalTitulo').textContent = 'Nuevo Producto';
+            document.getElementById('prodId').value = '';
+            ['pNombre','pSku','pPrecio','pStock','pDescripcion'].forEach(function(id){document.getElementById(id).value='';});
+            document.getElementById('pMarca').value = 'Genérico';
+            document.getElementById('modal').classList.add('visible');
+        }
+        function editar(p) {
+            document.getElementById('modalTitulo').textContent = 'Editar Producto';
+            document.getElementById('prodId').value = p._id;
+            document.getElementById('pNombre').value = p.nombre;
+            document.getElementById('pSku').value = p.sku || '';
+            document.getElementById('pMarca').value = p.marca || '';
+            document.getElementById('pPrecio').value = p.precio;
+            document.getElementById('pStock').value = p.stock;
+            document.getElementById('pCondicion').value = p.condicion || 'nuevo';
+            document.getElementById('pDescripcion').value = p.descripcion || '';
+            document.getElementById('pCategoria').value = (p.categoria && (p.categoria._id || p.categoria)) || '';
+            document.getElementById('modal').classList.add('visible');
+        }
+        function cerrar() { document.getElementById('modal').classList.remove('visible'); }
+
+        async function guardar() {
+            var datos = {
+                nombre: document.getElementById('pNombre').value.trim(),
+                sku: document.getElementById('pSku').value.trim(),
+                marca: document.getElementById('pMarca').value.trim(),
+                categoria: document.getElementById('pCategoria').value,
+                precio: parseFloat(document.getElementById('pPrecio').value),
+                stock: parseInt(document.getElementById('pStock').value),
+                condicion: document.getElementById('pCondicion').value,
+                descripcion: document.getElementById('pDescripcion').value.trim()
+            };
+            var id = document.getElementById('prodId').value;
+            var r = id ? await apiVendedorEditarProducto(id, datos) : await apiVendedorCrearProducto(datos);
+            if (r.exito) { mostrarAlerta('alerta', 'success', 'Producto guardado'); cerrar(); cargar(); }
+            else mostrarAlerta('alerta', 'danger', (r.errores && r.errores[0]) ? r.errores[0].mensaje : r.mensaje);
+        }
+
+        async function eliminar(id) {
+            if (!confirm('¿Eliminar este producto?')) return;
+            var r = await apiVendedorEliminarProducto(id);
+            if (r.exito) mostrarAlerta('alerta', 'success', 'Producto eliminado'); else mostrarAlerta('alerta', 'danger', r.mensaje);
+            cargar();
+        }
+
+        cargarCategorias();
+        cargar();
+    </script>
+</body>
+
+</html>

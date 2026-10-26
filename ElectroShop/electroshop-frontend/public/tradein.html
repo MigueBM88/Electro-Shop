@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ElectroShop - Trade-In</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+
+<body>
+
+    <div class="container">
+        <h2 style="margin-bottom:0.25rem">♻️ Trade-In de equipos</h2>
+        <p class="text-muted mb-1">Ofrece tu equipo usado y recibe crédito para tus compras</p>
+        <div id="alerta" class="alert"></div>
+
+        <div style="display:grid;grid-template-columns:400px 1fr;gap:1.5rem;align-items:start">
+            <!-- Formulario de solicitud -->
+            <div class="card">
+                <h3 style="margin-bottom:0.75rem">Nueva solicitud</h3>
+                <div class="form-group"><label>Equipo *</label><input type="text" id="nombreEquipo" placeholder="Osciloscopio Hantek DSO5102P"></div>
+                <div class="form-group"><label>Descripción del estado *</label><textarea id="descripcion" rows="3" placeholder="Funciona perfecto, incluye puntas y caja original..."></textarea></div>
+                <div class="form-group"><label>Condición</label>
+                    <select id="condicion">
+                        <option value="excelente">Excelente</option>
+                        <option value="bueno" selected>Bueno</option>
+                        <option value="regular">Regular</option>
+                        <option value="para_repuestos">Para repuestos</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Precio esperado (₡, opcional)</label><input type="number" id="precioEstimado" min="0" placeholder="35000"></div>
+                <button class="btn btn-primary" onclick="enviar()">Enviar solicitud</button>
+            </div>
+
+            <!-- Mis solicitudes -->
+            <div>
+                <h3 style="margin-bottom:0.75rem">Mis solicitudes</h3>
+                <div id="listaSolicitudes"><p class="text-muted">Cargando...</p></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script src="../js/utils.js"></script>
+    <script>
+        if (!requiereAuth()) throw 'no auth';
+        renderNavbar('tradein');
+
+        var ESTADO_TI = {
+            solicitado: { t: 'Solicitado', b: 'badge-warning' },
+            en_revision: { t: 'En revisión', b: 'badge-primary' },
+            aprobado: { t: 'Aprobado', b: 'badge-success' },
+            rechazado: { t: 'Rechazado', b: 'badge-danger' },
+            contraoferta: { t: 'Contraoferta', b: 'badge-warning' }
+        };
+        function tiBadge(e) { var m = ESTADO_TI[e] || { t: e, b: 'badge-primary' }; return '<span class="badge ' + m.b + '">' + m.t + '</span>'; }
+
+        async function cargar() {
+            var cont = document.getElementById('listaSolicitudes');
+            var r = await apiMisTradeIn();
+            if (!r.exito) { cont.innerHTML = '<p class="text-muted">No se pudo cargar.</p>'; return; }
+            var ss = r.datos.solicitudes;
+            if (ss.length === 0) { cont.innerHTML = '<p class="text-muted">Aún no tienes solicitudes.</p>'; return; }
+
+            cont.innerHTML = ss.map(function(s) {
+                var oferta = s.ofertaAdmin != null ? '<div style="margin-top:0.4rem"><strong>Oferta de ElectroShop:</strong> ' + formatPrecio(s.ofertaAdmin) + '</div>' : '';
+                var nota = s.notaAdmin ? '<div class="text-muted" style="font-size:0.8rem;margin-top:0.3rem">Nota: ' + s.notaAdmin + '</div>' : '';
+                return '<div class="card" style="margin-bottom:0.75rem">' +
+                    '<div style="display:flex;justify-content:space-between;align-items:center">' +
+                    '<strong>' + s.nombreEquipo + '</strong>' + tiBadge(s.estado) + '</div>' +
+                    '<div class="text-muted" style="font-size:0.82rem;margin-top:0.3rem">' + s.descripcion + '</div>' +
+                    '<div style="font-size:0.8rem;margin-top:0.3rem">Condición: ' + s.condicionDeclarada + (s.precioEstimadoCliente ? ' · Esperabas: ' + formatPrecio(s.precioEstimadoCliente) : '') + '</div>' +
+                    oferta + nota +
+                    '<div class="text-muted" style="font-size:0.72rem;margin-top:0.3rem">' + formatFecha(s.createdAt) + '</div>' +
+                    '</div>';
+            }).join('');
+        }
+
+        async function enviar() {
+            var datos = {
+                nombreEquipo: document.getElementById('nombreEquipo').value.trim(),
+                descripcion: document.getElementById('descripcion').value.trim(),
+                condicionDeclarada: document.getElementById('condicion').value,
+                precioEstimadoCliente: document.getElementById('precioEstimado').value || null
+            };
+            if (!datos.nombreEquipo || !datos.descripcion) {
+                mostrarAlerta('alerta', 'danger', 'Completa el equipo y la descripción');
+                return;
+            }
+            var r = await apiCrearTradeIn(datos);
+            if (r.exito) {
+                mostrarAlerta('alerta', 'success', 'Solicitud enviada. Te avisaremos cuando la evaluemos.');
+                document.getElementById('nombreEquipo').value = '';
+                document.getElementById('descripcion').value = '';
+                document.getElementById('precioEstimado').value = '';
+                cargar();
+            } else {
+                mostrarAlerta('alerta', 'danger', r.mensaje);
+            }
+        }
+
+        cargar();
+    </script>
+</body>
+
+</html>

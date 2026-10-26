@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ElectroShop - Carrito</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+
+<body>
+
+    <div class="container">
+        <h2 style="margin-bottom:0.5rem">🛒 Mi Carrito</h2>
+        <div id="alerta" class="alert"></div>
+
+        <div id="contenido">
+            <p class="text-muted">Cargando carrito...</p>
+        </div>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script src="../js/utils.js"></script>
+    <script>
+        if (!requiereAuth()) throw 'no auth';
+        renderNavbar('carrito');
+
+        async function cargarCarrito() {
+            var cont = document.getElementById('contenido');
+            try {
+                var r = await apiObtenerCarrito();
+                if (!r.exito) { cont.innerHTML = '<p class="text-muted">No se pudo cargar el carrito.</p>'; return; }
+
+                var d = r.datos;
+                if (d.ajustado) {
+                    mostrarAlerta('alerta', 'warning', 'Algunos productos se ajustaron por cambios de stock o disponibilidad.');
+                }
+
+                if (d.items.length === 0) {
+                    cont.innerHTML = '<div class="card text-center" style="padding:2rem">' +
+                        '<p style="font-size:3rem;margin:0">🛒</p>' +
+                        '<p class="text-muted">Tu carrito está vacío.</p>' +
+                        '<a href="catalogo.html" class="btn btn-primary btn-sm" style="width:auto;margin:0 auto">Ir al catálogo</a>' +
+                        '</div>';
+                    return;
+                }
+
+                // Tabla de items
+                var filas = d.items.map(function(i) {
+                    return '<tr>' +
+                        '<td><strong>' + i.nombre + '</strong><br><span class="text-muted" style="font-size:0.75rem">' + (i.marca || '') + '</span></td>' +
+                        '<td>' + formatPrecio(i.precioUnitario) + '</td>' +
+                        '<td>' +
+                        '<input type="number" min="1" max="' + i.stockDisponible + '" value="' + i.cantidad + '" style="width:70px" ' +
+                        'onchange="actualizarCantidad(\'' + i.producto + '\', this.value)">' +
+                        '</td>' +
+                        '<td><strong>' + formatPrecio(i.subtotal) + '</strong></td>' +
+                        '<td><button class="btn btn-sm btn-danger" onclick="quitar(\'' + i.producto + '\')">🗑️</button></td>' +
+                        '</tr>';
+                }).join('');
+
+                var res = d.resumen;
+                var envioTxt = res.envio === 0 ? '<span class="badge badge-success">GRATIS</span>' : formatPrecio(res.envio);
+
+                cont.innerHTML =
+                    '<div class="card"><div class="table-container"><table>' +
+                    '<thead><tr><th>Producto</th><th>Precio</th><th>Cantidad</th><th>Subtotal</th><th></th></tr></thead>' +
+                    '<tbody>' + filas + '</tbody></table></div></div>' +
+
+                    '<div class="card" style="max-width:360px;margin-left:auto;margin-top:1rem">' +
+                    '<h3 style="margin-bottom:0.75rem">Resumen</h3>' +
+                    '<div style="display:flex;justify-content:space-between;margin-bottom:0.4rem"><span>Subtotal</span><span>' + formatPrecio(res.subtotal) + '</span></div>' +
+                    '<div style="display:flex;justify-content:space-between;margin-bottom:0.4rem"><span>IVA (13%)</span><span>' + formatPrecio(res.impuesto) + '</span></div>' +
+                    '<div style="display:flex;justify-content:space-between;margin-bottom:0.4rem"><span>Envío</span><span>' + envioTxt + '</span></div>' +
+                    (res.envio > 0 ? '<p class="text-muted" style="font-size:0.72rem;margin-bottom:0.4rem">Envío gratis en compras desde ' + formatPrecio(res.envioGratisDesde) + '</p>' : '') +
+                    '<hr style="margin:0.5rem 0">' +
+                    '<div style="display:flex;justify-content:space-between;font-size:1.1rem;font-weight:700;margin-bottom:0.75rem"><span>Total</span><span style="color:var(--primary)">' + formatPrecio(res.total) + '</span></div>' +
+                    '<a href="checkout.html" class="btn btn-primary" style="margin-bottom:0.5rem">Proceder al pago</a>' +
+                    '<button class="btn btn-outline btn-sm" onclick="vaciar()">Vaciar carrito</button>' +
+                    '</div>';
+            } catch (e) {
+                cont.innerHTML = '<p class="text-muted">Error de conexión con el servidor.</p>';
+            }
+        }
+
+        async function actualizarCantidad(id, cantidad) {
+            var r = await apiActualizarItemCarrito(id, parseInt(cantidad));
+            if (!r.exito) mostrarAlerta('alerta', 'danger', r.mensaje);
+            cargarCarrito();
+        }
+
+        async function quitar(id) {
+            var r = await apiEliminarItemCarrito(id);
+            if (r.exito) mostrarAlerta('alerta', 'success', 'Producto eliminado del carrito');
+            cargarCarrito();
+        }
+
+        async function vaciar() {
+            if (!confirm('¿Vaciar todo el carrito?')) return;
+            await apiVaciarCarrito();
+            cargarCarrito();
+        }
+
+        cargarCarrito();
+    </script>
+</body>
+
+</html>

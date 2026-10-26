@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ElectroShop - Mis Pedidos</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+
+<body>
+
+    <div class="container">
+        <h2 style="margin-bottom:0.5rem">📦 Mis Pedidos</h2>
+        <p class="text-muted mb-1">Historial de tus compras</p>
+        <div id="alerta" class="alert"></div>
+
+        <div id="contenido">
+            <p class="text-muted">Cargando pedidos...</p>
+        </div>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/estadoPedido.js"></script>
+    <script>
+        if (!requiereAuth()) throw 'no auth';
+        renderNavbar('pedidos');
+
+        async function cargar() {
+            var cont = document.getElementById('contenido');
+            try {
+                var r = await apiMisPedidos();
+                if (!r.exito) { cont.innerHTML = '<p class="text-muted">No se pudieron cargar los pedidos.</p>'; return; }
+
+                var pedidos = r.datos.pedidos;
+                if (pedidos.length === 0) {
+                    cont.innerHTML = '<div class="card text-center" style="padding:2rem">' +
+                        '<p style="font-size:3rem;margin:0">📦</p>' +
+                        '<p class="text-muted">Aún no has realizado pedidos.</p>' +
+                        '<a href="catalogo.html" class="btn btn-primary btn-sm" style="width:auto;margin:0 auto">Ir al catálogo</a>' +
+                        '</div>';
+                    return;
+                }
+
+                cont.innerHTML = '<div class="card"><div class="table-container"><table>' +
+                    '<thead><tr><th>Pedido</th><th>Fecha</th><th>Productos</th><th>Total</th><th>Estado</th><th></th></tr></thead>' +
+                    '<tbody>' + pedidos.map(function(p) {
+                        var numItems = p.items.reduce(function(s, i) { return s + i.cantidad; }, 0);
+                        return '<tr>' +
+                            '<td><strong>' + p.numero + '</strong></td>' +
+                            '<td>' + formatFecha(p.createdAt) + '</td>' +
+                            '<td>' + numItems + ' artículo(s)</td>' +
+                            '<td><strong>' + formatPrecio(p.total) + '</strong></td>' +
+                            '<td>' + estadoPedidoBadge(p.estado) + '</td>' +
+                            '<td><a href="pedido.html?id=' + p._id + '" class="btn btn-sm btn-outline">Ver detalle</a></td>' +
+                            '</tr>';
+                    }).join('') + '</tbody></table></div></div>';
+            } catch (e) {
+                cont.innerHTML = '<p class="text-muted">Error de conexión con el servidor.</p>';
+            }
+        }
+        cargar();
+    </script>
+</body>
+
+</html>

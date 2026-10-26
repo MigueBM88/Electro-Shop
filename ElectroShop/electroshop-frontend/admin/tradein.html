@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ElectroShop Admin - Trade-In</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+
+<body>
+
+    <div class="container">
+        <h2 style="margin-bottom:0.25rem">♻️ Evaluación de Trade-In</h2>
+        <p class="text-muted mb-1">Revisa y evalúa las solicitudes de los clientes</p>
+        <div id="alerta" class="alert"></div>
+
+        <div class="filters-bar">
+            <select id="fEstado" onchange="cargar()">
+                <option value="">Todas</option>
+                <option value="solicitado">Solicitadas</option>
+                <option value="en_revision">En revisión</option>
+                <option value="aprobado">Aprobadas</option>
+                <option value="rechazado">Rechazadas</option>
+                <option value="contraoferta">Contraoferta</option>
+            </select>
+        </div>
+
+        <div id="lista"><p class="text-muted">Cargando...</p></div>
+    </div>
+
+    <!-- MODAL EVALUAR -->
+    <div id="modalEval" class="modal-overlay">
+        <div class="modal" style="max-width:440px">
+            <h3 id="evalTitulo">Evaluar solicitud</h3>
+            <input type="hidden" id="evalId">
+            <div class="form-group"><label>Decisión</label>
+                <select id="evalEstado">
+                    <option value="en_revision">En revisión</option>
+                    <option value="aprobado">Aprobar</option>
+                    <option value="contraoferta">Contraoferta</option>
+                    <option value="rechazado">Rechazar</option>
+                </select>
+            </div>
+            <div class="form-group"><label>Oferta de crédito (₡)</label><input type="number" id="evalOferta" min="0" placeholder="30000"></div>
+            <div class="form-group"><label>Nota para el cliente</label><textarea id="evalNota" rows="2"></textarea></div>
+            <div class="btn-group">
+                <button class="btn btn-outline" onclick="cerrarModal()">Cancelar</button>
+                <button class="btn btn-primary" onclick="guardarEval()">Guardar evaluación</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script src="../js/utils.js"></script>
+    <script>
+        if (!requiereAdmin()) throw 'no admin';
+        renderNavbarAdmin('tradein');
+
+        var ESTADO_TI = {
+            solicitado: 'badge-warning', en_revision: 'badge-primary', aprobado: 'badge-success',
+            rechazado: 'badge-danger', contraoferta: 'badge-warning'
+        };
+        function tiBadge(e) { return '<span class="badge ' + (ESTADO_TI[e] || 'badge-primary') + '">' + e + '</span>'; }
+
+        async function cargar() {
+            var cont = document.getElementById('lista');
+            var params = '';
+            var estado = document.getElementById('fEstado').value;
+            if (estado) params = '?estado=' + estado;
+            var r = await apiListarTradeInAdmin(params);
+            if (!r.exito) { cont.innerHTML = '<p class="text-muted">Error al cargar.</p>'; return; }
+            var ss = r.datos.solicitudes;
+            if (ss.length === 0) { cont.innerHTML = '<p class="text-muted">No hay solicitudes.</p>'; return; }
+
+            cont.innerHTML = ss.map(function(s) {
+                var cliente = s.usuario ? (s.usuario.nombre + ' (' + s.usuario.correo + ')') : '—';
+                var oferta = s.ofertaAdmin != null ? ' · Oferta: ' + formatPrecio(s.ofertaAdmin) : '';
+                return '<div class="card" style="margin-bottom:0.75rem">' +
+                    '<div style="display:flex;justify-content:space-between;align-items:center">' +
+                    '<strong>' + s.nombreEquipo + '</strong>' + tiBadge(s.estado) + '</div>' +
+                    '<div class="text-muted" style="font-size:0.82rem;margin-top:0.3rem">' + s.descripcion + '</div>' +
+                    '<div style="font-size:0.8rem;margin-top:0.3rem">Cliente: ' + cliente + ' · Condición: ' + s.condicionDeclarada +
+                    (s.precioEstimadoCliente ? ' · Espera: ' + formatPrecio(s.precioEstimadoCliente) : '') + oferta + '</div>' +
+                    '<button class="btn btn-sm btn-primary" style="margin-top:0.5rem;width:auto" onclick="abrirEval(\'' + s._id + '\',\'' + s.nombreEquipo.replace(/'/g, "\\'") + '\',' + (s.ofertaAdmin || 0) + ')">Evaluar</button>' +
+                    '</div>';
+            }).join('');
+        }
+
+        function abrirEval(id, nombre, oferta) {
+            document.getElementById('evalId').value = id;
+            document.getElementById('evalTitulo').textContent = 'Evaluar: ' + nombre;
+            document.getElementById('evalOferta').value = oferta || '';
+            document.getElementById('evalNota').value = '';
+            document.getElementById('modalEval').classList.add('visible');
+        }
+        function cerrarModal() { document.getElementById('modalEval').classList.remove('visible'); }
+
+        async function guardarEval() {
+            var datos = {
+                estado: document.getElementById('evalEstado').value,
+                ofertaAdmin: document.getElementById('evalOferta').value || null,
+                notaAdmin: document.getElementById('evalNota').value.trim()
+            };
+            var r = await apiEvaluarTradeIn(document.getElementById('evalId').value, datos);
+            if (r.exito) { mostrarAlerta('alerta', 'success', 'Solicitud evaluada'); cerrarModal(); cargar(); }
+            else mostrarAlerta('alerta', 'danger', r.mensaje);
+        }
+
+        cargar();
+    </script>
+</body>
+
+</html>

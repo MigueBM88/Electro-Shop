@@ -32,6 +32,27 @@ app.use('/api/categorias', require('./routes/categoriaRoutes'));
 // Rutas de Productos (público + admin)
 app.use('/api/productos', require('./routes/productoRoutes'));
 
+// Rutas de Carrito (cliente autenticado)
+app.use('/api/carrito', require('./routes/carritoRoutes'));
+
+// Rutas de Pedidos (cliente + admin)
+app.use('/api/pedidos', require('./routes/pedidoRoutes'));
+
+// Rutas de Reseñas (público + cliente + admin)
+app.use('/api/resenas', require('./routes/resenaRoutes'));
+
+// Rutas de Inventario (admin)
+app.use('/api/inventario', require('./routes/inventarioRoutes'));
+
+// Rutas de Reportes (admin)
+app.use('/api/reportes', require('./routes/reporteRoutes'));
+
+// Rutas de Trade-In (cliente + admin)
+app.use('/api/tradein', require('./routes/tradeInRoutes'));
+
+// Rutas de Vendedores Externos (vendedor + admin)
+app.use('/api/vendedor', require('./routes/vendedorRoutes'));
+
 // Ruta de prueba
 app.get('/', (req, res) => {
   res.json({

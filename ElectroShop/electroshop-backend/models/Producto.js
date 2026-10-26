@@ -47,6 +47,13 @@ const productoSchema = new mongoose.Schema(
       ref: 'Categoria',
       required: [true, 'La categoría es obligatoria']
     },
+    // Vendedor externo dueño del producto (null = producto de la tienda)
+    vendedor: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+      index: true
+    },
     precio: {
       type: Number,
       required: [true, 'El precio es obligatorio'],

@@ -55,6 +55,20 @@ async function crearAdmin() {
       console.log('   Contraseña:', ADMIN_PASSWORD);
     }
 
+    // Crear un vendedor de ejemplo para probar el módulo de Vendedores Externos
+    const correoVendedor = 'vendedor@electroshop.com';
+    const vExistente = await User.findOne({ correo: correoVendedor });
+    if (vExistente) {
+      vExistente.rol = 'vendedor';
+      vExistente.activo = true;
+      vExistente.correoConfirmado = true;
+      await vExistente.save();
+      console.log('✅ Vendedor existente actualizado:', correoVendedor);
+    } else {
+      await User.create({ nombre: 'Vendedor Demo', correo: correoVendedor, contrasena: 'Vendedor1234', rol: 'vendedor', activo: true, correoConfirmado: true });
+      console.log('✅ Vendedor creado:', correoVendedor, '/ contraseña: Vendedor1234');
+    }
+
     console.log('\n👉 Ya puedes iniciar sesión en el frontend con estas credenciales.');
   } catch (error) {
     console.error('❌ Error al crear el admin:', error.message);

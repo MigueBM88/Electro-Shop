@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ElectroShop Admin - Inventario</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+
+<body>
+
+    <div class="container">
+        <h2 style="margin-bottom:0.25rem">📊 Gestión de Inventario</h2>
+        <p class="text-muted mb-1">Control de stock, alertas y ajustes</p>
+        <div id="alerta" class="alert"></div>
+
+        <!-- KPIs -->
+        <div id="kpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem;margin-bottom:1.5rem"></div>
+
+        <!-- Alertas de bajo stock -->
+        <div class="card">
+            <h3 style="margin-bottom:0.75rem">⚠️ Alertas de stock bajo / agotado</h3>
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>Producto</th><th>Categoría</th><th>Stock</th><th>Ajustar</th></tr></thead>
+                    <tbody id="tablaAlertas"><tr><td colspan="4" class="text-center text-muted">Cargando...</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL AJUSTE -->
+    <div id="modalAjuste" class="modal-overlay">
+        <div class="modal" style="max-width:420px">
+            <h3 id="ajusteTitulo">Ajustar stock</h3>
+            <input type="hidden" id="ajusteProdId">
+            <div class="form-group">
+                <label>Tipo de movimiento</label>
+                <select id="ajusteTipo">
+                    <option value="entrada">Entrada (sumar al stock)</option>
+                    <option value="salida">Salida (restar del stock)</option>
+                    <option value="ajuste">Ajuste (fijar stock exacto)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Cantidad</label>
+                <input type="number" id="ajusteCantidad" min="0" value="0">
+            </div>
+            <div class="form-group">
+                <label>Motivo (opcional)</label>
+                <input type="text" id="ajusteMotivo" placeholder="Reposición de proveedor, merma, conteo físico...">
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-outline" onclick="cerrarModal()">Cancelar</button>
+                <button class="btn btn-primary" onclick="guardarAjuste()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script src="../js/utils.js"></script>
+    <script>
+        if (!requiereAdmin()) throw 'no admin';
+        renderNavbarAdmin('inventario');
+
+        async function cargarKpis() {
+            var r = await apiInventarioResumen();
+            if (!r.exito) return;
+            var k = r.datos.resumen;
+            function card(titulo, valor, color) {
+                return '<div class="card" style="text-align:center;padding:1rem">' +
+                    '<div style="font-size:1.6rem;font-weight:700;color:' + (color || 'var(--primary)') + '">' + valor + '</div>' +
+                    '<div class="text-muted" style="font-size:0.8rem">' + titulo + '</div></div>';
+            }
+            document.getElementById('kpis').innerHTML =
+                card('Productos', k.totalProductos) +
+                card('Activos', k.activos, 'var(--success)') +
+                card('Bajo stock', k.bajoStock, 'var(--warning)') +
+                card('Agotados', k.agotados, 'var(--danger)') +
+                card('Unidades totales', k.unidadesTotales) +
+                card('Valor inventario', formatPrecio(k.valorInventario));
+        }
+
+        async function cargarAlertas() {
+            var tbody = document.getElementById('tablaAlertas');
+            var r = await apiInventarioAlertas();
+            if (!r.exito) { tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Error</td></tr>'; return; }
+            var ps = r.datos.productos;
+            if (ps.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">✅ Ningún producto con stock bajo. ¡Todo en orden!</td></tr>';
+                return;
+            }
+            tbody.innerHTML = ps.map(function(p) {
+                var cat = p.categoria ? p.categoria.nombre : '—';
+                return '<tr>' +
+                    '<td><strong>' + p.nombre + '</strong><br><span class="text-muted" style="font-size:0.72rem">SKU: ' + (p.sku || '—') + '</span></td>' +
+                    '<td>' + cat + '</td>' +
+                    '<td>' + stockBadge(p.stock) + '</td>' +
+                    '<td><button class="btn btn-sm btn-primary" onclick="abrirAjuste(\'' + p._id + '\',\'' + p.nombre.replace(/'/g, "\\'") + '\')">Ajustar</button></td>' +
+                    '</tr>';
+            }).join('');
+        }
+
+        function abrirAjuste(id, nombre) {
+            document.getElementById('ajusteProdId').value = id;
+            document.getElementById('ajusteTitulo').textContent = 'Ajustar: ' + nombre;
+            document.getElementById('ajusteCantidad').value = 0;
+            document.getElementById('ajusteMotivo').value = '';
+            document.getElementById('modalAjuste').classList.add('visible');
+        }
+        function cerrarModal() { document.getElementById('modalAjuste').classList.remove('visible'); }
+
+        async function guardarAjuste() {
+            var datos = {
+                productoId: document.getElementById('ajusteProdId').value,
+                tipo: document.getElementById('ajusteTipo').value,
+                cantidad: parseInt(document.getElementById('ajusteCantidad').value) || 0,
+                motivo: document.getElementById('ajusteMotivo').value.trim()
+            };
+            var r = await apiAjustarStock(datos);
+            if (r.exito) {
+                mostrarAlerta('alerta', 'success', 'Stock actualizado: ' + r.datos.producto.nombre + ' → ' + r.datos.producto.stock);
+                cerrarModal(); cargarKpis(); cargarAlertas();
+            } else {
+                mostrarAlerta('alerta', 'danger', r.mensaje);
+            }
+        }
+
+        cargarKpis();
+        cargarAlertas();
+    </script>
+</body>
+
+</html>
