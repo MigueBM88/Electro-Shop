@@ -7,10 +7,14 @@ const app = express();
 const PORT = 5002;
 
 
-//Publicar los archivos hacia el servidor frontend
-app.use(express.static(
-    path.join(__dirname, "public")
-));
+//Publicar toda la carpeta frontend hacia el servidor (incluye Public, css, js)
+app.use(express.static(__dirname));
+
+
+//Redirigir la raiz al index dentro de public
+app.get("/", (req, res) => {
+    res.redirect("/public/index.html");
+});
 
 
 app.listen(PORT, () => {

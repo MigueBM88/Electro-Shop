@@ -1,110 +1,121 @@
-
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ElectroShop - Registro</title>
-  <link rel="stylesheet" href="css/styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ElectroShop - Registro</title>
+    <link rel="stylesheet" href="../css/styles.css">
 </head>
+
 <body>
 
-  <div class="auth-container">
-    <div class="card">
-      <div class="card-header">
-        <div class="icon">🔌</div>
-        <h2>Crear Cuenta</h2>
-        <p>Únete a ElectroShop</p>
-      </div>
+    <div class="auth-container">
+        <div class="card">
+            <div class="card-header">
+                <div class="icon">🔌</div>
+                <h2>Crear Cuenta</h2>
+                <p>Únete a ElectroShop</p>
+            </div>
 
-      <div id="alerta" class="alert"></div>
+            <div id="alerta" class="alert"></div>
 
-      <form id="formRegistro">
-        <div class="form-group">
-          <label for="nombre">Nombre completo</label>
-          <input type="text" id="nombre" placeholder="Ej: Miguel Bravo" required>
-          <div class="error-text" id="err-nombre"></div>
-        </div>
-        <div class="form-group">
-          <label for="correo">Correo electrónico</label>
-          <input type="email" id="correo" placeholder="tu@correo.com" required>
-          <div class="error-text" id="err-correo"></div>
-        </div>
-        <div class="form-group">
-          <label for="contrasena">Contraseña</label>
-          <input type="password" id="contrasena" placeholder="Mínimo 8 caracteres" required>
-          <div class="error-text" id="err-contrasena"></div>
-        </div>
-        <div class="form-group">
-          <label for="confirmarContrasena">Confirmar contraseña</label>
-          <input type="password" id="confirmarContrasena" placeholder="Repite tu contraseña" required>
-          <div class="error-text" id="err-confirmarContrasena"></div>
-        </div>
-        <button type="submit" class="btn btn-primary" id="btnReg">Registrarse</button>
-      </form>
+            <form id="formRegistro">
+                <div class="form-group">
+                    <label for="nombre">Nombre completo</label>
+                    <input type="text" id="nombre" placeholder="Ej: Miguel Bravo" required>
+                    <div class="error-text" id="err-nombre"></div>
+                </div>
+                <div class="form-group">
+                    <label for="correo">Correo electrónico</label>
+                    <input type="email" id="correo" placeholder="tu@correo.com" required>
+                    <div class="error-text" id="err-correo"></div>
+                </div>
+                <div class="form-group">
+                    <label for="contrasena">Contraseña</label>
+                    <input type="password" id="contrasena" placeholder="Mínimo 8 caracteres" required>
+                    <div class="error-text" id="err-contrasena"></div>
+                </div>
+                <div class="form-group">
+                    <label for="confirmarContrasena">Confirmar contraseña</label>
+                    <input type="password" id="confirmarContrasena" placeholder="Repite tu contraseña" required>
+                    <div class="error-text" id="err-confirmarContrasena"></div>
+                </div>
+                <button type="submit" class="btn btn-primary" id="btnReg">Registrarse</button>
+            </form>
 
-      <p class="text-center text-muted mt-1">
-        ¿Ya tienes cuenta? <a href="index.html" class="text-link">Inicia sesión</a>
-      </p>
+            <p class="text-center text-muted mt-1">
+                ¿Ya tienes cuenta? <a href="index.html" class="text-link">Inicia sesión</a>
+            </p>
+        </div>
     </div>
-  </div>
 
-  <script src="js/api.js"></script>
-  <script>
-    if (estaLogueado()) window.location.href = 'perfil.html';
+    <script src="../js/api.js"></script>
+    <script>
+        if (estaLogueado()) window.location.href = 'perfil.html';
 
-    document.getElementById('formRegistro').addEventListener('submit', async function(e) {
-      e.preventDefault();
+        document.getElementById('formRegistro').addEventListener('submit', async function(e) {
+            e.preventDefault();
 
-      // Limpiar errores previos
-      document.querySelectorAll('.error-text').forEach(function(el) { el.textContent = ''; el.className = 'error-text'; });
-      document.querySelectorAll('input').forEach(function(el) { el.classList.remove('error'); });
-
-      var btn = document.getElementById('btnReg');
-      var alerta = document.getElementById('alerta');
-
-      var datos = {
-        nombre: document.getElementById('nombre').value.trim(),
-        correo: document.getElementById('correo').value.trim(),
-        contrasena: document.getElementById('contrasena').value,
-        confirmarContrasena: document.getElementById('confirmarContrasena').value
-      };
-
-      btn.disabled = true;
-      btn.innerHTML = '<span class="spinner"></span> Registrando...';
-
-      try {
-        var r = await apiRegistro(datos);
-
-        if (r.exito) {
-          guardarSesion(r.datos.token, r.datos.usuario);
-          alerta.textContent = '✅ ' + r.mensaje;
-          alerta.className = 'alert alert-success visible';
-          setTimeout(function() { window.location.href = 'perfil.html'; }, 1200);
-        } else {
-          alerta.textContent = r.mensaje;
-          alerta.className = 'alert alert-error visible';
-
-          // Mostrar errores por campo
-          if (r.errores) {
-            r.errores.forEach(function(err) {
-              var inp = document.getElementById(err.campo);
-              var errEl = document.getElementById('err-' + err.campo);
-              if (inp) inp.classList.add('error');
-              if (errEl) { errEl.textContent = err.mensaje; errEl.className = 'error-text visible'; }
+            // Limpiar errores previos
+            document.querySelectorAll('.error-text').forEach(function(el) {
+                el.textContent = '';
+                el.className = 'error-text';
             });
-          }
-        }
-      } catch (err) {
-        alerta.textContent = 'Error de conexión con el servidor';
-        alerta.className = 'alert alert-error visible';
-      }
+            document.querySelectorAll('input').forEach(function(el) {
+                el.classList.remove('error');
+            });
 
-      btn.disabled = false;
-      btn.innerHTML = 'Registrarse';
-    });
-  </script>
+            var btn = document.getElementById('btnReg');
+            var alerta = document.getElementById('alerta');
+
+            var datos = {
+                nombre: document.getElementById('nombre').value.trim(),
+                correo: document.getElementById('correo').value.trim(),
+                contrasena: document.getElementById('contrasena').value,
+                confirmarContrasena: document.getElementById('confirmarContrasena').value
+            };
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> Registrando...';
+
+            try {
+                var r = await apiRegistro(datos);
+
+                if (r.exito) {
+                    guardarSesion(r.datos.token, r.datos.usuario);
+                    alerta.textContent = '✅ ' + r.mensaje;
+                    alerta.className = 'alert alert-success visible';
+                    setTimeout(function() {
+                        window.location.href = 'perfil.html';
+                    }, 1200);
+                } else {
+                    alerta.textContent = r.mensaje;
+                    alerta.className = 'alert alert-error visible';
+
+                    // Mostrar errores por campo
+                    if (r.errores) {
+                        r.errores.forEach(function(err) {
+                            var inp = document.getElementById(err.campo);
+                            var errEl = document.getElementById('err-' + err.campo);
+                            if (inp) inp.classList.add('error');
+                            if (errEl) {
+                                errEl.textContent = err.mensaje;
+                                errEl.className = 'error-text visible';
+                            }
+                        });
+                    }
+                }
+            } catch (err) {
+                alerta.textContent = 'Error de conexión con el servidor';
+                alerta.className = 'alert alert-error visible';
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = 'Registrarse';
+        });
+    </script>
 
 </body>
-</html>
 
+</html>
