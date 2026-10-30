@@ -11,9 +11,11 @@ function getUsuario() { var d = localStorage.getItem('es_user'); return d ? JSON
 function guardarSesion(token, usuario) { localStorage.setItem('es_token', token);
     localStorage.setItem('es_user', JSON.stringify(usuario)); }
 
-function cerrarSesion() { localStorage.removeItem('es_token');
+function cerrarSesion() {
+    localStorage.removeItem('es_token');
     localStorage.removeItem('es_user');
-    window.location.href = '/public/index.html'; }
+    window.location.replace('/index.html');
+}
 
 function estaLogueado() { return !!getToken(); }
 

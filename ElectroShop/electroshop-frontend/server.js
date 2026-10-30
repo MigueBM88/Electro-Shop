@@ -7,13 +7,18 @@ const app = express();
 const PORT = 5002;
 
 
-//Publicar toda la carpeta frontend hacia el servidor (incluye Public, css, js)
-app.use(express.static(__dirname));
+// La carpeta public es la raiz del sitio: http://localhost:5002/ sirve public/index.html
+app.use(express.static(path.join(__dirname, "public")));
 
+// Recursos compartidos y paneles por rol
+app.use("/css", express.static(path.join(__dirname, "css")));
+app.use("/js", express.static(path.join(__dirname, "js")));
+app.use("/admin", express.static(path.join(__dirname, "admin")));
+app.use("/vendedor", express.static(path.join(__dirname, "vendedor")));
 
-//Redirigir la raiz al index dentro de public
-app.get("/", (req, res) => {
-    res.redirect("/public/index.html");
+// Compatibilidad: si algo viejo apunta a /public/..., redirigir a la raiz
+app.get("/public/*", (req, res) => {
+    res.redirect(req.path.replace(/^\/public/, ""));
 });
 
 
