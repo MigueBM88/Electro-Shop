@@ -244,3 +244,36 @@ async function apiVendedorEliminarProducto(id) {
 async function apiVendedorVentas() {
     return (await fetch(API_URL + '/vendedor/ventas', { headers: authHeaders() })).json();
 }
+
+
+// ============================================
+// Modo oscuro / claro (botón flotante en todas las páginas)
+// ============================================
+(function () {
+    var guardado = localStorage.getItem('es_tema');
+    var prefiereOscuro = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var tema = guardado || (prefiereOscuro ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', tema);
+
+    function crearBoton() {
+        if (document.querySelector('.theme-toggle')) return;
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'theme-toggle';
+        function actualizar() {
+            var oscuro = document.documentElement.getAttribute('data-theme') === 'dark';
+            btn.textContent = oscuro ? '☀️' : '🌙';
+            btn.title = oscuro ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro';
+        }
+        btn.addEventListener('click', function () {
+            var nuevo = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', nuevo);
+            localStorage.setItem('es_tema', nuevo);
+            actualizar();
+        });
+        actualizar();
+        document.body.appendChild(btn);
+    }
+    if (document.body) crearBoton();
+    else document.addEventListener('DOMContentLoaded', crearBoton);
+})();

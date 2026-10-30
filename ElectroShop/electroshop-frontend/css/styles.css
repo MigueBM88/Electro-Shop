@@ -187,3 +187,37 @@ table tr:hover { background: var(--gray-50); }
   .filters-bar { flex-direction: column; }
 }
 
+
+/* ====== MODO OSCURO / DARK MODE ====== */
+[data-theme="dark"] {
+  --primary-light: #1e3a8a;
+  --success-light: #14532d; --danger-light: #7f1d1d; --warning-light: #78350f;
+  --gray-50: #0f172a; --gray-100: #1e293b; --gray-200: #334155;
+  --gray-300: #475569; --gray-500: #94a3b8; --gray-700: #cbd5e1; --gray-900: #f1f5f9;
+  --white: #1e293b;
+  --shadow: 0 4px 6px -1px rgba(0,0,0,0.5), 0 2px 4px -2px rgba(0,0,0,0.4);
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.6);
+  color-scheme: dark;
+}
+[data-theme="dark"] .navbar { background: #020617; color: #f1f5f9; }
+[data-theme="dark"] .navbar-brand { color: #f1f5f9; }
+[data-theme="dark"] .navbar-links a { color: #cbd5e1; }
+[data-theme="dark"] .navbar-links a:hover,
+[data-theme="dark"] .navbar-links a.active { color: #ffffff; }
+[data-theme="dark"] .navbar-user .user-name { color: #cbd5e1; }
+[data-theme="dark"] .btn-primary,
+[data-theme="dark"] .btn-success,
+[data-theme="dark"] .btn-danger { color: #ffffff; }
+[data-theme="dark"] .alert-warning,
+[data-theme="dark"] .badge-warning { color: #fde68a; }
+[data-theme="dark"] input, [data-theme="dark"] select, [data-theme="dark"] textarea { color: #f1f5f9; }
+body { transition: background 0.2s, color 0.2s; }
+
+/* Botón flotante de tema */
+.theme-toggle {
+  position: fixed; bottom: 20px; right: 20px; z-index: 1000;
+  width: 48px; height: 48px; border-radius: 50%; border: none; cursor: pointer;
+  font-size: 1.4rem; background: var(--gray-900); color: var(--gray-50);
+  box-shadow: var(--shadow-lg); transition: transform 0.2s;
+}
+.theme-toggle:hover { transform: scale(1.1); }
