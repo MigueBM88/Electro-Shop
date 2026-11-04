@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ElectroShop Admin - Productos</title>
     <link rel="stylesheet" href="../css/styles.css">
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.min.css">
 </head>
 
 <body>
@@ -19,7 +21,6 @@
         <button class="btn btn-primary btn-sm mb-1" style="width:auto" onclick="abrirModalCrear()">+ Nuevo Producto</button>
 
         <div class="filters-bar">
-            <input type="text" id="fBusqueda" placeholder="🔍 Buscar por nombre, SKU o marca...">
             <select id="fCategoria"><option value="">Todas las categorías</option></select>
             <select id="fCondicion">
         <option value="">Todas las condiciones</option>
@@ -37,7 +38,7 @@
         <!-- TABLA -->
         <div class="card">
             <div class="table-container">
-                <table>
+                <table id="tablaProductos" class="display" style="width:100%">
                     <thead>
                         <tr>
                             <th>Producto</th>
@@ -56,7 +57,6 @@
                     </tbody>
                 </table>
             </div>
-            <div id="paginacion" class="text-center text-muted mt-1"></div>
         </div>
     </div>
 
@@ -125,6 +125,9 @@
         </div>
     </div>
 
+    <!-- jQuery + DataTables -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/2.1.8/js/dataTables.min.js"></script>
     <script src="../js/api.js"></script>
     <script src="../js/utils.js"></script>
     <script>
@@ -159,13 +162,11 @@
 
         // === Cargar tabla de productos ===
         async function cargarProductos() {
-            var params = '?pagina=' + paginaActual + '&limite=10';
-            var busqueda = document.getElementById('fBusqueda').value.trim();
+            var params = '?pagina=1&limite=1000'; // DataTables pagina en el navegador
             var categoria = document.getElementById('fCategoria').value;
             var condicion = document.getElementById('fCondicion').value;
             var activo = document.getElementById('fActivo').value;
 
-            if (busqueda) params += '&busqueda=' + encodeURIComponent(busqueda);
             if (categoria) params += '&categoria=' + categoria;
             if (condicion) params += '&condicion=' + condicion;
             if (activo) params += '&activo=' + activo;
@@ -173,13 +174,13 @@
             try {
                 var r = await apiListarProductosAdmin(params);
                 var tbody = document.getElementById('tablaBody');
+                limpiarDataTable('#tablaProductos');
 
                 if (r.exito) {
                     var productos = r.datos.productos;
 
                     if (productos.length === 0) {
                         tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No se encontraron productos</td></tr>';
-                        document.getElementById('paginacion').innerHTML = '';
                         return;
                     }
 
@@ -189,8 +190,8 @@
                         return '<tr>' +
                             '<td><strong>' + p.nombre + '</strong><br><span class="text-muted" style="font-size:0.75rem">' + (p.marca || '') + ' · SKU: ' + (p.sku || '—') + '</span></td>' +
                             '<td>' + catNombre + '</td>' +
-                            '<td>' + formatPrecio(p.precio) + '</td>' +
-                            '<td>' + stockBadge(p.stock) + '</td>' +
+                            '<td data-order="' + p.precio + '">' + formatPrecio(p.precio) + '</td>' +
+                            '<td data-order="' + p.stock + '">' + stockBadge(p.stock) + '</td>' +
                             '<td>' + condicionBadge(p.condicion) + '</td>' +
                             '<td>' + estadoBadge(p.activo) + '</td>' +
                             '<td>' +
@@ -200,12 +201,10 @@
                             '</tr>';
                     }).join('');
 
-                    // Paginación
-                    var pag = r.datos.paginacion;
-                    var pagHTML = 'Página ' + pag.pagina + ' de ' + pag.totalPaginas + ' (' + pag.total + ' productos) ';
-                    if (pag.pagina > 1) pagHTML += '<button class="btn btn-sm btn-outline" onclick="irPagina(' + (pag.pagina - 1) + ')">← Anterior</button> ';
-                    if (pag.pagina < pag.totalPaginas) pagHTML += '<button class="btn btn-sm btn-outline" onclick="irPagina(' + (pag.pagina + 1) + ')">Siguiente →</button>';
-                    document.getElementById('paginacion').innerHTML = pagHTML;
+                    // DataTables: búsqueda, orden y paginación
+                    activarDataTable('#tablaProductos', {
+                        columnDefs: [{ targets: 6, orderable: false, searchable: false }]
+                    });
                 } else {
                     mostrarAlerta('alerta', 'error', r.mensaje);
                 }
@@ -214,19 +213,7 @@
             }
         }
 
-        function irPagina(p) {
-            paginaActual = p;
-            cargarProductos();
-        }
-
         // === Filtros ===
-        document.getElementById('fBusqueda').addEventListener('input', function() {
-            clearTimeout(timerBusqueda);
-            timerBusqueda = setTimeout(function() {
-                paginaActual = 1;
-                cargarProductos();
-            }, 400);
-        });
         document.getElementById('fCategoria').addEventListener('change', function() {
             paginaActual = 1;
             cargarProductos();

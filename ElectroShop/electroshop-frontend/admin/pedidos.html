@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ElectroShop Admin - Pedidos</title>
     <link rel="stylesheet" href="../css/styles.css">
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.min.css">
 </head>
 
 <body>
@@ -30,7 +32,7 @@
 
         <div class="card">
             <div class="table-container">
-                <table>
+                <table id="tablaPedidos" class="display" style="width:100%">
                     <thead>
                         <tr><th>Pedido</th><th>Cliente</th><th>Fecha</th><th>Total</th><th>Pago</th><th>Estado</th><th>Cambiar estado</th></tr>
                     </thead>
@@ -39,10 +41,12 @@
                     </tbody>
                 </table>
             </div>
-            <div id="paginacion" class="text-center text-muted mt-1"></div>
         </div>
     </div>
 
+    <!-- jQuery + DataTables -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/2.1.8/js/dataTables.min.js"></script>
     <script src="../js/api.js"></script>
     <script src="../js/utils.js"></script>
     <script src="../js/estadoPedido.js"></script>
@@ -54,10 +58,11 @@
 
         async function cargar() {
             var tbody = document.getElementById('tablaBody');
-            var params = '?pagina=' + paginaActual + '&limite=15';
+            var params = '?pagina=1&limite=1000'; // DataTables pagina en el navegador
             var estado = document.getElementById('fEstado').value;
             if (estado) params += '&estado=' + estado;
 
+            limpiarDataTable('#tablaPedidos');
             try {
                 var r = await apiListarPedidosAdmin(params);
                 if (!r.exito) { tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Error al cargar</td></tr>'; return; }
@@ -65,7 +70,6 @@
                 var pedidos = r.datos.pedidos;
                 if (pedidos.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No hay pedidos</td></tr>';
-                    document.getElementById('paginacion').innerHTML = '';
                     return;
                 }
 
@@ -81,25 +85,24 @@
                     return '<tr>' +
                         '<td><strong>' + p.numero + '</strong></td>' +
                         '<td>' + cliente + '</td>' +
-                        '<td>' + formatFecha(p.createdAt) + '</td>' +
-                        '<td><strong>' + formatPrecio(p.total) + '</strong></td>' +
+                        '<td data-order="' + p.createdAt + '">' + formatFecha(p.createdAt) + '</td>' +
+                        '<td data-order="' + p.total + '"><strong>' + formatPrecio(p.total) + '</strong></td>' +
                         '<td>' + pagoBadge + '</td>' +
                         '<td>' + estadoPedidoBadge(p.estado) + '</td>' +
                         '<td><select onchange="cambiarEstado(\'' + p._id + '\', this.value)" style="min-width:130px">' + opciones + '</select></td>' +
                         '</tr>';
                 }).join('');
 
-                var pag = r.datos.paginacion;
-                var pagHTML = 'Página ' + pag.pagina + ' de ' + pag.totalPaginas + ' (' + pag.total + ' pedidos) ';
-                if (pag.pagina > 1) pagHTML += '<button class="btn btn-sm btn-outline" onclick="irPagina(' + (pag.pagina - 1) + ')">← Anterior</button> ';
-                if (pag.pagina < pag.totalPaginas) pagHTML += '<button class="btn btn-sm btn-outline" onclick="irPagina(' + (pag.pagina + 1) + ')">Siguiente →</button>';
-                document.getElementById('paginacion').innerHTML = pagHTML;
+                // DataTables: búsqueda, orden y paginación
+                activarDataTable('#tablaPedidos', {
+                    order: [[2, 'desc']],
+                    columnDefs: [{ targets: 6, orderable: false, searchable: false }]
+                });
             } catch (e) {
                 tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Error de conexión</td></tr>';
             }
         }
 
-        function irPagina(n) { paginaActual = n; cargar(); }
 
         async function cambiarEstado(id, estado) {
             var r = await apiActualizarEstadoPedido(id, estado);

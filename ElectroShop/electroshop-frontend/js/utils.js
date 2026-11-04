@@ -191,3 +191,21 @@ function renderProductCard(p) {
         '<div style="margin-top:0.25rem;">' + stockBadge(p.stock) + '</div>' +
         '</div></div>';
 }
+
+// ===== DataTables: helpers compartidos (requiere jQuery + DataTables) =====
+// Llamar ANTES de reescribir el <tbody> para quitar la instancia anterior
+function limpiarDataTable(selector) {
+  if (window.jQuery && $.fn.DataTable && $.fn.DataTable.isDataTable(selector)) {
+    $(selector).DataTable().destroy();
+  }
+}
+
+// Llamar DESPUÉS de llenar el <tbody> para activar búsqueda, orden y paginación
+function activarDataTable(selector, opciones) {
+  limpiarDataTable(selector);
+  return $(selector).DataTable(Object.assign({
+    pageLength: 10,
+    lengthMenu: [5, 10, 25, 50],
+    language: { url: 'https://cdn.datatables.net/plug-ins/2.1.8/i18n/es-ES.json' }
+  }, opciones || {}));
+}

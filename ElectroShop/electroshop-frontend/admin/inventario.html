@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ElectroShop Admin - Inventario</title>
     <link rel="stylesheet" href="../css/styles.css">
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.min.css">
 </head>
 
 <body>
@@ -22,7 +24,7 @@
         <div class="card">
             <h3 style="margin-bottom:0.75rem">⚠️ Alertas de stock bajo / agotado</h3>
             <div class="table-container">
-                <table>
+                <table id="tablaInventario" class="display" style="width:100%">
                     <thead><tr><th>Producto</th><th>Categoría</th><th>Stock</th><th>Ajustar</th></tr></thead>
                     <tbody id="tablaAlertas"><tr><td colspan="4" class="text-center text-muted">Cargando...</td></tr></tbody>
                 </table>
@@ -58,6 +60,9 @@
         </div>
     </div>
 
+    <!-- jQuery + DataTables -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/2.1.8/js/dataTables.min.js"></script>
     <script src="../js/api.js"></script>
     <script src="../js/utils.js"></script>
     <script>
@@ -84,6 +89,7 @@
 
         async function cargarAlertas() {
             var tbody = document.getElementById('tablaAlertas');
+            limpiarDataTable('#tablaInventario');
             var r = await apiInventarioAlertas();
             if (!r.exito) { tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Error</td></tr>'; return; }
             var ps = r.datos.productos;
@@ -96,10 +102,16 @@
                 return '<tr>' +
                     '<td><strong>' + p.nombre + '</strong><br><span class="text-muted" style="font-size:0.72rem">SKU: ' + (p.sku || '—') + '</span></td>' +
                     '<td>' + cat + '</td>' +
-                    '<td>' + stockBadge(p.stock) + '</td>' +
+                    '<td data-order="' + p.stock + '">' + stockBadge(p.stock) + '</td>' +
                     '<td><button class="btn btn-sm btn-primary" onclick="abrirAjuste(\'' + p._id + '\',\'' + p.nombre.replace(/'/g, "\\'") + '\')">Ajustar</button></td>' +
                     '</tr>';
             }).join('');
+
+            // DataTables: búsqueda, orden y paginación (stock más bajo primero)
+            activarDataTable('#tablaInventario', {
+                order: [[2, 'asc']],
+                columnDefs: [{ targets: 3, orderable: false, searchable: false }]
+            });
         }
 
         function abrirAjuste(id, nombre) {

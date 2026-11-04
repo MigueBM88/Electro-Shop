@@ -23,22 +23,22 @@
             <form id="formRegistro">
                 <div class="form-group">
                     <label for="nombre">Nombre completo</label>
-                    <input type="text" id="nombre" placeholder="Ej: Miguel Bravo" required>
+                    <input type="text" id="nombre" name="nombre" placeholder="Ej: Miguel Bravo" required>
                     <div class="error-text" id="err-nombre"></div>
                 </div>
                 <div class="form-group">
                     <label for="correo">Correo electrónico</label>
-                    <input type="email" id="correo" placeholder="tu@correo.com" required>
+                    <input type="email" id="correo" name="correo" placeholder="tu@correo.com" required>
                     <div class="error-text" id="err-correo"></div>
                 </div>
                 <div class="form-group">
                     <label for="contrasena">Contraseña</label>
-                    <input type="password" id="contrasena" placeholder="Mínimo 8 caracteres" required>
+                    <input type="password" id="contrasena" name="contrasena" placeholder="Mínimo 8 caracteres" required>
                     <div class="error-text" id="err-contrasena"></div>
                 </div>
                 <div class="form-group">
                     <label for="confirmarContrasena">Confirmar contraseña</label>
-                    <input type="password" id="confirmarContrasena" placeholder="Repite tu contraseña" required>
+                    <input type="password" id="confirmarContrasena" name="confirmarContrasena" placeholder="Repite tu contraseña" required>
                     <div class="error-text" id="err-confirmarContrasena"></div>
                 </div>
                 <button type="submit" class="btn btn-primary" id="btnReg">Registrarse</button>
@@ -50,69 +50,92 @@
         </div>
     </div>
 
+    <!-- jQuery + jQuery Validation -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.20.0/dist/jquery.validate.min.js"></script>
     <script src="../js/api.js"></script>
     <script>
         if (estaLogueado()) window.location.href = 'perfil.html';
 
-        document.getElementById('formRegistro').addEventListener('submit', async function(e) {
-            e.preventDefault();
+        // Reglas personalizadas (iguales a las del backend en userValidators.js)
+        $.validator.addMethod('soloLetras', function(value, el) {
+            return this.optional(el) || /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/.test(value);
+        }, 'El nombre solo puede contener letras y espacios');
 
-            // Limpiar errores previos
-            document.querySelectorAll('.error-text').forEach(function(el) {
-                el.textContent = '';
-                el.className = 'error-text';
-            });
-            document.querySelectorAll('input').forEach(function(el) {
-                el.classList.remove('error');
-            });
+        $.validator.addMethod('contrasenaSegura', function(value, el) {
+            return this.optional(el) || /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]+$/.test(value);
+        }, 'Debe incluir una mayúscula, una minúscula, un número y un carácter especial (@$!%*?&#)');
 
-            var btn = document.getElementById('btnReg');
-            var alerta = document.getElementById('alerta');
-
-            var datos = {
-                nombre: document.getElementById('nombre').value.trim(),
-                correo: document.getElementById('correo').value.trim(),
-                contrasena: document.getElementById('contrasena').value,
-                confirmarContrasena: document.getElementById('confirmarContrasena').value
-            };
-
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner"></span> Registrando...';
-
-            try {
-                var r = await apiRegistro(datos);
-
-                if (r.exito) {
-                    guardarSesion(r.datos.token, r.datos.usuario);
-                    alerta.textContent = '✅ ' + r.mensaje;
-                    alerta.className = 'alert alert-success visible';
-                    setTimeout(function() {
-                        window.location.href = 'perfil.html';
-                    }, 1200);
-                } else {
-                    alerta.textContent = r.mensaje;
-                    alerta.className = 'alert alert-error visible';
-
-                    // Mostrar errores por campo
-                    if (r.errores) {
-                        r.errores.forEach(function(err) {
-                            var inp = document.getElementById(err.campo);
-                            var errEl = document.getElementById('err-' + err.campo);
-                            if (inp) inp.classList.add('error');
-                            if (errEl) {
-                                errEl.textContent = err.mensaje;
-                                errEl.className = 'error-text visible';
-                            }
-                        });
-                    }
+        $('#formRegistro').validate({
+            rules: {
+                nombre: { required: true, minlength: 2, maxlength: 100, soloLetras: true },
+                correo: { required: true, email: true },
+                contrasena: { required: true, minlength: 8, contrasenaSegura: true },
+                confirmarContrasena: { required: true, equalTo: '#contrasena' }
+            },
+            messages: {
+                nombre: {
+                    required: 'El nombre es obligatorio',
+                    minlength: 'El nombre debe tener al menos 2 caracteres',
+                    maxlength: 'El nombre no puede exceder 100 caracteres'
+                },
+                correo: {
+                    required: 'El correo electrónico es obligatorio',
+                    email: 'Debe ingresar un correo electrónico válido'
+                },
+                contrasena: {
+                    required: 'La contraseña es obligatoria',
+                    minlength: 'La contraseña debe tener al menos 8 caracteres'
+                },
+                confirmarContrasena: {
+                    required: 'Debe confirmar la contraseña',
+                    equalTo: 'Las contraseñas no coinciden'
                 }
-            } catch (err) {
-                alerta.textContent = 'Error de conexión con el servidor';
-                alerta.className = 'alert alert-error visible';
-            }
+            },
+            // Mostrar errores en los <div class="error-text"> existentes
+            errorPlacement: function(error, element) {
+                $('#err-' + element.attr('id')).text(error.text()).addClass('visible');
+            },
+            highlight: function(el) { $(el).addClass('error'); },
+            unhighlight: function(el) {
+                $(el).removeClass('error');
+                $('#err-' + el.id).text('').removeClass('visible');
+            },
+            submitHandler: async function() {
+                var $btn = $('#btnReg');
+                var $alerta = $('#alerta');
 
-            btn.disabled = false;
-            btn.innerHTML = 'Registrarse';
+                var datos = {
+                    nombre: $('#nombre').val().trim(),
+                    correo: $('#correo').val().trim(),
+                    contrasena: $('#contrasena').val(),
+                    confirmarContrasena: $('#confirmarContrasena').val()
+                };
+
+                $btn.prop('disabled', true).html('<span class="spinner"></span> Registrando...');
+
+                try {
+                    var r = await apiRegistro(datos);
+                    if (r.exito) {
+                        guardarSesion(r.datos.token, r.datos.usuario);
+                        $alerta.text('✅ ' + r.mensaje).attr('class', 'alert alert-success visible');
+                        setTimeout(function() { window.location.href = 'perfil.html'; }, 1200);
+                    } else {
+                        $alerta.text(r.mensaje).attr('class', 'alert alert-error visible');
+                        // Errores por campo que vengan del backend
+                        if (r.errores) {
+                            r.errores.forEach(function(err) {
+                                $('#' + err.campo).addClass('error');
+                                $('#err-' + err.campo).text(err.mensaje).addClass('visible');
+                            });
+                        }
+                    }
+                } catch (err) {
+                    $alerta.text('Error de conexión con el servidor').attr('class', 'alert alert-error visible');
+                }
+
+                $btn.prop('disabled', false).html('Registrarse');
+            }
         });
     </script>
 
