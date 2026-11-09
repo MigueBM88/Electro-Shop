@@ -83,102 +83,11 @@
         </div>
     </div>
 
+    <!-- jQuery (debe cargar antes de api.js, utils.js y scripts de página) -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="../js/api.js"></script>
     <script src="../js/utils.js"></script>
-    <script>
-        if (!requiereAuth()) throw 'no auth';
-        renderNavbar('buscar');
-
-        // === Cargar opciones de filtros (categorías y marcas) ===
-        async function cargarFiltros() {
-            try {
-                var catRes = await apiArbolCategorias(true);
-                if (catRes.exito) {
-                    var sel = document.getElementById('fCategoria');
-                    catRes.datos.arbol.forEach(function(c) {
-                        sel.innerHTML += '<option value="' + c._id + '">' + (c.icono || '') + ' ' + c.nombre + '</option>';
-                        if (c.subcategorias) {
-                            c.subcategorias.forEach(function(s) {
-                                sel.innerHTML += '<option value="' + s._id + '"> — ' + s.nombre + '</option>';
-                            });
-                        }
-                    });
-                }
-            } catch (e) { /* ignorar */ }
-
-            try {
-                var marcaRes = await apiMarcas();
-                if (marcaRes.exito) {
-                    var sel = document.getElementById('fMarca');
-                    marcaRes.datos.marcas.forEach(function(m) {
-                        sel.innerHTML += '<option value="' + m + '">' + m + '</option>';
-                    });
-                }
-            } catch (e) { /* ignorar */ }
-        }
-
-        // === Buscar productos ===
-        async function buscar(pagina) {
-            var params = new URLSearchParams();
-            var q = document.getElementById('fBusqueda').value.trim();
-            if (q) params.set('q', q);
-            if (document.getElementById('fCategoria').value) params.set('categoria', document.getElementById('fCategoria').value);
-            if (document.getElementById('fMarca').value) params.set('marca', document.getElementById('fMarca').value);
-            if (document.getElementById('fPrecioMin').value) params.set('precioMin', document.getElementById('fPrecioMin').value);
-            if (document.getElementById('fPrecioMax').value) params.set('precioMax', document.getElementById('fPrecioMax').value);
-            if (document.getElementById('fDisponibilidad').value) params.set('disponibilidad', document.getElementById('fDisponibilidad').value);
-            if (document.getElementById('fCondicion').value) params.set('condicion', document.getElementById('fCondicion').value);
-            if (document.getElementById('fOrdenar').value) params.set('ordenar', document.getElementById('fOrdenar').value);
-            params.set('pagina', pagina || 1);
-            params.set('limite', 12);
-
-            try {
-                var r = await apiBuscarProductos('?' + params.toString());
-                var grid = document.getElementById('gridResultados');
-                var info = document.getElementById('infoResultados');
-
-                if (r.exito) {
-                    var pag = r.datos.paginacion;
-
-                    if (r.datos.productos.length === 0) {
-                        grid.innerHTML = '<p class="text-muted">No se encontraron resultados para tu búsqueda</p>';
-                        info.textContent = '0 resultados';
-                        document.getElementById('paginacion').innerHTML = '';
-
-                        // Mostrar sugerencias
-                        if (r.datos.sugerencias && r.datos.sugerencias.length > 0) {
-                            document.getElementById('zonaSugerencias').classList.remove('hidden');
-                            document.getElementById('gridSugerencias').innerHTML = r.datos.sugerencias.map(function(p) {
-                                return renderProductCard(p);
-                            }).join('');
-                        }
-                    } else {
-                        document.getElementById('zonaSugerencias').classList.add('hidden');
-                        info.textContent = pag.total + ' resultado(s) encontrado(s)';
-                        grid.innerHTML = r.datos.productos.map(function(p) {
-                            return renderProductCard(p);
-                        }).join('');
-
-                        // Paginación
-                        var pagHTML = 'Pág. ' + pag.pagina + ' de ' + pag.totalPaginas + ' ';
-                        if (pag.pagina > 1) pagHTML += '<button class="btn btn-sm btn-outline" onclick="buscar(' + (pag.pagina - 1) + ')">← Anterior</button> ';
-                        if (pag.pagina < pag.totalPaginas) pagHTML += '<button class="btn btn-sm btn-outline" onclick="buscar(' + (pag.pagina + 1) + ')">Siguiente →</button>';
-                        document.getElementById('paginacion').innerHTML = pagHTML;
-                    }
-                }
-            } catch (e) {
-                mostrarAlerta('alerta', 'error', 'Error de conexión al buscar');
-            }
-        }
-
-        // === Submit del formulario ===
-        document.getElementById('formBuscar').addEventListener('submit', function(e) {
-            e.preventDefault();
-            buscar(1);
-        });
-
-        cargarFiltros();
-    </script>
+    <script src="../js/public/buscar.js"></script>
 
 </body>
 

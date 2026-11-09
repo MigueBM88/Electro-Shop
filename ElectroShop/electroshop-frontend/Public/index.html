@@ -38,53 +38,10 @@
         </div>
     </div>
 
+    <!-- jQuery (debe cargar antes de api.js, utils.js y scripts de página) -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="../js/api.js"></script>
-    <script>
-        // Si ya está logueado, redirigir
-        if (estaLogueado()) window.location.href = 'perfil.html';
-
-        document.getElementById('formLogin').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            var btn = document.getElementById('btnLogin');
-            var correo = document.getElementById('correo').value.trim();
-            var contrasena = document.getElementById('contrasena').value;
-            var alerta = document.getElementById('alerta');
-
-            if (!correo || !contrasena) {
-                alerta.textContent = 'Complete todos los campos';
-                alerta.className = 'alert alert-error visible';
-                return;
-            }
-
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner"></span> Ingresando...';
-
-            try {
-                var r = await apiLogin(correo, contrasena);
-
-                if (r.exito) {
-                    guardarSesion(r.datos.token, r.datos.usuario);
-                    alerta.textContent = '✅ ' + r.mensaje;
-                    alerta.className = 'alert alert-success visible';
-                    setTimeout(function() {
-                        window.location.href = r.datos.usuario.rol === 'admin' ? '../admin/usuarios.html' : 'perfil.html';
-                    }, 800);
-                } else {
-                    var msg = r.mensaje;
-                    if (r.minutosRestantes) msg += ' (' + r.minutosRestantes + ' min)';
-                    if (r.intentosRestantes !== undefined) msg += ' — Intentos: ' + r.intentosRestantes;
-                    alerta.textContent = msg;
-                    alerta.className = 'alert alert-error visible';
-                }
-            } catch (err) {
-                alerta.textContent = 'Error de conexión. ¿Está corriendo el backend?';
-                alerta.className = 'alert alert-error visible';
-            }
-
-            btn.disabled = false;
-            btn.innerHTML = 'Iniciar Sesión';
-        });
-    </script>
+    <script src="../js/public/index.js"></script>
 
 </body>
 

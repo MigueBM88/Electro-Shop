@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { protegerRuta } = require('../middlewares/auth');
 const { autorizarRol } = require('../middlewares/roleAuth');
+const { validarAjusteStock } = require('../validators/inventarioValidators');
 const {
   resumenInventario,
   alertasStock,
@@ -16,6 +17,6 @@ router.use(autorizarRol('admin'));
 router.get('/resumen', resumenInventario);
 router.get('/alertas', alertasStock);
 router.get('/movimientos', historialMovimientos);
-router.post('/ajuste', ajustarStock);
+router.post('/ajuste', validarAjusteStock, ajustarStock);
 
 module.exports = router;

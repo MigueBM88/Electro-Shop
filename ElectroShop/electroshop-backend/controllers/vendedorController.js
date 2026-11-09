@@ -1,6 +1,33 @@
 const Producto = require('../models/Producto');
 const Pedido = require('../models/Pedido');
 
+// Campos que un vendedor puede definir/editar en sus productos.
+// Derivados de validarProducto/validarEdicionProducto y del modelo Producto.
+// Quedan EXCLUIDOS a propósito: vendedor (dueño), activo, _id, createdAt/updatedAt.
+const CAMPOS_EDITABLES = [
+  'nombre',
+  'descripcion',
+  'sku',
+  'marca',
+  'categoria',
+  'precio',
+  'precioOriginal',
+  'stock',
+  'condicion',
+  'especificaciones',
+  'imagenes',
+  'datasheetUrl'
+];
+
+// Copia solo los campos permitidos que vengan definidos en el body
+const filtrarCampos = (body = {}) => {
+  const datos = {};
+  CAMPOS_EDITABLES.forEach((campo) => {
+    if (body[campo] !== undefined) datos[campo] = body[campo];
+  });
+  return datos;
+};
+
 // GET /api/vendedor/productos  -> productos del vendedor autenticado
 const misProductos = async (req, res) => {
   try {
@@ -17,7 +44,8 @@ const misProductos = async (req, res) => {
 // POST /api/vendedor/productos  -> crear producto propio
 const crearProducto = async (req, res) => {
   try {
-    const datos = { ...req.body, vendedor: req.usuario._id };
+    // Whitelist: el dueño siempre es el usuario autenticado
+    const datos = { ...filtrarCampos(req.body), vendedor: req.usuario._id };
     const producto = await Producto.create(datos);
     await producto.populate('categoria', 'nombre');
     res.status(201).json({ exito: true, mensaje: 'Producto creado', datos: { producto } });
@@ -42,16 +70,22 @@ const editarProducto = async (req, res) => {
       return res.status(403).json({ exito: false, mensaje: 'Solo puedes editar tus propios productos' });
     }
 
-    // No permitir cambiar el dueño
-    const datos = { ...req.body };
-    delete datos.vendedor;
-
-    Object.assign(producto, datos);
+    // Whitelist explícita: no se puede cambiar dueño, estado activo, _id ni timestamps
+    const datos = filtrarCampos(req.body);
+    Object.keys(datos).forEach((campo) => {
+      producto[campo] = datos[campo];
+    });
     await producto.save();
     await producto.populate('categoria', 'nombre');
     res.status(200).json({ exito: true, mensaje: 'Producto actualizado', datos: { producto } });
   } catch (error) {
     console.error('Error al editar producto (vendedor):', error);
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({
+        exito: false, mensaje: 'Error de validación',
+        errores: Object.values(error.errors).map((e) => ({ campo: e.path, mensaje: e.message }))
+      });
+    }
     res.status(500).json({ exito: false, mensaje: 'Error al actualizar el producto' });
   }
 };

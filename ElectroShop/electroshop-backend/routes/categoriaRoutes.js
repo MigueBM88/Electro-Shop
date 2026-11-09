@@ -3,6 +3,7 @@ const router = express.Router();
 const { protegerRuta } = require('../middlewares/auth');
 const { autorizarRol } = require('../middlewares/roleAuth');
 const { validarCategoria, validarEdicionCategoria } = require('../validators/categoriaValidators');
+const { validarId } = require('../validators/commonValidators');
 const {
   listarPrincipales,
   listarSubcategorias,
@@ -16,11 +17,11 @@ const {
 // IMPORTANTE: /arbol antes de /:id/... para que no se confunda con un id
 router.get('/arbol', arbolCategorias);
 router.get('/', listarPrincipales);
-router.get('/:id/subcategorias', listarSubcategorias);
+router.get('/:id/subcategorias', validarId(), listarSubcategorias);
 
 // ---- RUTAS ADMIN (requieren token + rol admin) ----
 router.post('/', protegerRuta, autorizarRol('admin'), validarCategoria, crearCategoria);
-router.put('/:id', protegerRuta, autorizarRol('admin'), validarEdicionCategoria, editarCategoria);
-router.delete('/:id', protegerRuta, autorizarRol('admin'), eliminarCategoria);
+router.put('/:id', protegerRuta, autorizarRol('admin'), validarId(), validarEdicionCategoria, editarCategoria);
+router.delete('/:id', protegerRuta, autorizarRol('admin'), validarId(), eliminarCategoria);
 
 module.exports = router;

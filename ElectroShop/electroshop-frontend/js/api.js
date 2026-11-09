@@ -256,24 +256,23 @@ async function apiVendedorVentas() {
     document.documentElement.setAttribute('data-theme', tema);
 
     function crearBoton() {
-        if (document.querySelector('.theme-toggle')) return;
-        var btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'theme-toggle';
+        if (!window.jQuery) return; // jQuery debe cargarse antes que api.js
+        if ($('.theme-toggle').length) return;
+        var $html = $(document.documentElement);
+        var $btn = $('<button>', { type: 'button', 'class': 'theme-toggle' });
         function actualizar() {
-            var oscuro = document.documentElement.getAttribute('data-theme') === 'dark';
-            btn.textContent = oscuro ? '☀️' : '🌙';
-            btn.title = oscuro ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro';
+            var oscuro = $html.attr('data-theme') === 'dark';
+            $btn.text(oscuro ? '☀️' : '🌙')
+                .attr('title', oscuro ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro');
         }
-        btn.addEventListener('click', function () {
-            var nuevo = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', nuevo);
+        $btn.on('click', function () {
+            var nuevo = $html.attr('data-theme') === 'dark' ? 'light' : 'dark';
+            $html.attr('data-theme', nuevo);
             localStorage.setItem('es_tema', nuevo);
             actualizar();
         });
         actualizar();
-        document.body.appendChild(btn);
+        $('body').append($btn);
     }
-    if (document.body) crearBoton();
-    else document.addEventListener('DOMContentLoaded', crearBoton);
+    if (window.jQuery) $(crearBoton);
 })();

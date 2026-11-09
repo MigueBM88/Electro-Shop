@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const { protegerRuta } = require('../middlewares/auth');
 const { autorizarRol } = require('../middlewares/roleAuth');
+const { validarId } = require('../validators/commonValidators');
+const { validarCheckout, validarEstadoPedido } = require('../validators/pedidoValidators');
 const {
   checkout,
   misPedidos,
@@ -16,12 +18,12 @@ router.use(protegerRuta);
 
 // ---- Rutas ADMIN (van antes de /:id para no colisionar) ----
 router.get('/admin/lista', autorizarRol('admin'), listarPedidosAdmin);
-router.put('/:id/estado', autorizarRol('admin'), actualizarEstadoPedido);
+router.put('/:id/estado', autorizarRol('admin'), validarId(), validarEstadoPedido, actualizarEstadoPedido);
 
 // ---- Rutas del CLIENTE ----
-router.post('/checkout', checkout);
+router.post('/checkout', validarCheckout, checkout);
 router.get('/', misPedidos);
-router.get('/:id', detallePedido);
-router.put('/:id/cancelar', cancelarPedido);
+router.get('/:id', validarId(), detallePedido);
+router.put('/:id/cancelar', validarId(), cancelarPedido);
 
 module.exports = router;

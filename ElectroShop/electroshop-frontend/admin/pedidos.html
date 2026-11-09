@@ -19,7 +19,7 @@
         <div id="alerta" class="alert"></div>
 
         <div class="filters-bar">
-            <select id="fEstado" onchange="cargar()">
+            <select id="fEstado">
                 <option value="">Todos los estados</option>
                 <option value="pendiente">Pendiente de pago</option>
                 <option value="pagado">Pagado</option>
@@ -50,69 +50,7 @@
     <script src="../js/api.js"></script>
     <script src="../js/utils.js"></script>
     <script src="../js/estadoPedido.js"></script>
-    <script>
-        if (!requiereAdmin()) throw 'no admin';
-        renderNavbarAdmin('pedidos');
-
-        var paginaActual = 1;
-
-        async function cargar() {
-            var tbody = document.getElementById('tablaBody');
-            var params = '?pagina=1&limite=1000'; // DataTables pagina en el navegador
-            var estado = document.getElementById('fEstado').value;
-            if (estado) params += '&estado=' + estado;
-
-            limpiarDataTable('#tablaPedidos');
-            try {
-                var r = await apiListarPedidosAdmin(params);
-                if (!r.exito) { tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Error al cargar</td></tr>'; return; }
-
-                var pedidos = r.datos.pedidos;
-                if (pedidos.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No hay pedidos</td></tr>';
-                    return;
-                }
-
-                tbody.innerHTML = pedidos.map(function(p) {
-                    var cliente = p.usuario ? (p.usuario.nombre + '<br><span class="text-muted" style="font-size:0.72rem">' + p.usuario.correo + '</span>') : '—';
-                    var pagoMap = { aprobado: 'badge-success', pendiente: 'badge-warning', rechazado: 'badge-danger' };
-                    var pagoBadge = '<span class="badge ' + (pagoMap[p.pago.estado] || 'badge-primary') + '">' + p.pago.estado + '</span>';
-
-                    var opciones = ['pendiente','pagado','preparando','enviado','entregado','cancelado'].map(function(e) {
-                        return '<option value="' + e + '"' + (e === p.estado ? ' selected' : '') + '>' + e + '</option>';
-                    }).join('');
-
-                    return '<tr>' +
-                        '<td><strong>' + p.numero + '</strong></td>' +
-                        '<td>' + cliente + '</td>' +
-                        '<td data-order="' + p.createdAt + '">' + formatFecha(p.createdAt) + '</td>' +
-                        '<td data-order="' + p.total + '"><strong>' + formatPrecio(p.total) + '</strong></td>' +
-                        '<td>' + pagoBadge + '</td>' +
-                        '<td>' + estadoPedidoBadge(p.estado) + '</td>' +
-                        '<td><select onchange="cambiarEstado(\'' + p._id + '\', this.value)" style="min-width:130px">' + opciones + '</select></td>' +
-                        '</tr>';
-                }).join('');
-
-                // DataTables: búsqueda, orden y paginación
-                activarDataTable('#tablaPedidos', {
-                    order: [[2, 'desc']],
-                    columnDefs: [{ targets: 6, orderable: false, searchable: false }]
-                });
-            } catch (e) {
-                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Error de conexión</td></tr>';
-            }
-        }
-
-
-        async function cambiarEstado(id, estado) {
-            var r = await apiActualizarEstadoPedido(id, estado);
-            if (r.exito) mostrarAlerta('alerta', 'success', 'Estado actualizado a "' + estado + '"');
-            else mostrarAlerta('alerta', 'danger', r.mensaje);
-            cargar();
-        }
-
-        cargar();
-    </script>
+    <script src="../js/admin/pedidos.js"></script>
 </body>
 
 </html>
