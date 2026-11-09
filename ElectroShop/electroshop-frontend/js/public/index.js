@@ -2,12 +2,12 @@
 // ElectroShop - Iniciar sesión (migrado a jQuery)
 // ============================================
 $(function() {
+    construirFooterES();
     // Si ya está logueado, redirigir
     if (estaLogueado()) window.location.href = 'perfil.html';
 
     $('#formLogin').on('submit', async function(e) {
         e.preventDefault();
-        var $btn = $('#btnLogin');
         var correo = $('#correo').val().trim();
         var contrasena = $('#contrasena').val();
         var $alerta = $('#alerta');
@@ -17,7 +17,7 @@ $(function() {
             return;
         }
 
-        $btn.prop('disabled', true).html('<span class="spinner"></span> Ingresando...');
+        botonCargando('btnLogin', true, 'Ingresando...');
 
         try {
             var r = await apiLogin(correo, contrasena);
@@ -36,8 +36,8 @@ $(function() {
             }
         } catch (err) {
             $alerta.text('Error de conexión. ¿Está corriendo el backend?').attr('class', 'alert alert-error visible');
+        } finally {
+            botonCargando('btnLogin', false);
         }
-
-        $btn.prop('disabled', false).html('Iniciar Sesión');
     });
 });

@@ -87,11 +87,23 @@ $(function() {
         cargarKpis: cargarKpis,
         cargarVentas: cargarVentas,
         cargarProductos: cargarProductos,
-        cargarEstados: cargarEstados
+        cargarEstados: cargarEstados,
+        cargarTodo: cargarTodo
     });
 
-    cargarKpis();
-    cargarVentas();
-    cargarProductos();
-    cargarEstados();
+    // Carga inicial: las 4 peticiones van en paralelo (igual que antes) y el
+    // spinner se oculta cuando terminan todas, aunque alguna falle.
+    async function cargarTodo() {
+        mostrarSpinner();
+        try {
+            var resultados = await Promise.allSettled([cargarKpis(), cargarVentas(), cargarProductos(), cargarEstados()]);
+            resultados.forEach(function(res) {
+                if (res.status === 'rejected') console.error(res.reason);
+            });
+        } finally {
+            ocultarSpinner();
+        }
+    }
+
+    cargarTodo();
 });

@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ElectroShop Admin - Productos</title>
     <link rel="stylesheet" href="../css/styles.css">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <!-- DataTables CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.min.css">
 </head>
@@ -35,6 +36,10 @@
       </select>
         </div>
 
+        <!-- Spinner de carga (se muestra con mostrarSpinner / ocultarSpinner) -->
+        <div id="cargando" class="cargando-contenedor d-none">
+            <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div>
+        </div>
         <!-- TABLA -->
         <div class="card">
             <div class="table-container">
@@ -120,7 +125,7 @@
 
             <div class="btn-group">
                 <button class="btn btn-outline" data-action="cerrar-modal">Cancelar</button>
-                <button class="btn btn-primary" data-action="guardar-producto">Guardar Producto</button>
+                <button class="btn btn-primary" id="btnGuardarProducto" data-action="guardar-producto">Guardar Producto</button>
             </div>
         </div>
     </div>

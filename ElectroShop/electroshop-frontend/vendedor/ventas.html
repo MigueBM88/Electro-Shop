@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ElectroShop Vendedor - Mis Ventas</title>
     <link rel="stylesheet" href="../css/styles.css">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 </head>
 
 <body>
@@ -15,6 +16,10 @@
         <p class="text-muted mb-1">Pedidos que incluyen tus productos</p>
         <div id="alerta" class="alert"></div>
 
+        <!-- Spinner de carga (se muestra con mostrarSpinner / ocultarSpinner) -->
+        <div id="cargando" class="cargando-contenedor d-none">
+            <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div>
+        </div>
         <div id="totalVendido" class="card" style="text-align:center;max-width:300px;margin-bottom:1.5rem"></div>
 
         <div id="lista"><p class="text-muted">Cargando...</p></div>

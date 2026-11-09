@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ElectroShop Admin - Inventario</title>
     <link rel="stylesheet" href="../css/styles.css">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <!-- DataTables CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.min.css">
 </head>
@@ -20,6 +21,10 @@
         <!-- KPIs -->
         <div id="kpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem;margin-bottom:1.5rem"></div>
 
+        <!-- Spinner de carga (se muestra con mostrarSpinner / ocultarSpinner) -->
+        <div id="cargando" class="cargando-contenedor d-none">
+            <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div>
+        </div>
         <!-- Alertas de bajo stock -->
         <div class="card">
             <h3 style="margin-bottom:0.75rem">⚠️ Alertas de stock bajo / agotado</h3>
@@ -55,7 +60,7 @@
             </div>
             <div class="btn-group">
                 <button class="btn btn-outline" data-action="cerrar-modal">Cancelar</button>
-                <button class="btn btn-primary" data-action="guardar-ajuste">Guardar</button>
+                <button class="btn btn-primary" id="btnGuardarAjuste" data-action="guardar-ajuste">Guardar</button>
             </div>
         </div>
     </div>

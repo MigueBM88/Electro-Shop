@@ -28,28 +28,33 @@ $(function() {
     async function cargarAlertas() {
         var $tbody = $('#tablaAlertas');
         limpiarDataTable('#tablaInventario');
-        var r = await apiInventarioAlertas();
-        if (!r.exito) { $tbody.html('<tr><td colspan="4" class="text-center text-muted">Error</td></tr>'); return; }
-        var ps = r.datos.productos;
-        if (ps.length === 0) {
-            $tbody.html('<tr><td colspan="4" class="text-center text-muted">✅ Ningún producto con stock bajo. ¡Todo en orden!</td></tr>');
-            return;
-        }
-        $tbody.html(ps.map(function(p) {
-            var cat = p.categoria ? p.categoria.nombre : '—';
-            return '<tr>' +
-                '<td><strong>' + esc(p.nombre) + '</strong><br><span class="text-muted" style="font-size:0.72rem">SKU: ' + esc(p.sku || '—') + '</span></td>' +
-                '<td>' + esc(cat) + '</td>' +
-                '<td data-order="' + esc(p.stock) + '">' + stockBadge(p.stock) + '</td>' +
-                '<td><button class="btn btn-sm btn-primary" data-action="abrir-ajuste" data-id="' + esc(p._id) + '" data-nombre="' + esc(p.nombre) + '">Ajustar</button></td>' +
-                '</tr>';
-        }).join(''));
+        mostrarSpinner();
+        try {
+            var r = await apiInventarioAlertas();
+            if (!r.exito) { $tbody.html('<tr><td colspan="4" class="text-center text-muted">Error</td></tr>'); return; }
+            var ps = r.datos.productos;
+            if (ps.length === 0) {
+                $tbody.html('<tr><td colspan="4" class="text-center text-muted">✅ Ningún producto con stock bajo. ¡Todo en orden!</td></tr>');
+                return;
+            }
+            $tbody.html(ps.map(function(p) {
+                var cat = p.categoria ? p.categoria.nombre : '—';
+                return '<tr>' +
+                    '<td><strong>' + esc(p.nombre) + '</strong><br><span class="text-muted" style="font-size:0.72rem">SKU: ' + esc(p.sku || '—') + '</span></td>' +
+                    '<td>' + esc(cat) + '</td>' +
+                    '<td data-order="' + esc(p.stock) + '">' + stockBadge(p.stock) + '</td>' +
+                    '<td><button class="btn btn-sm btn-primary" data-action="abrir-ajuste" data-id="' + esc(p._id) + '" data-nombre="' + esc(p.nombre) + '">Ajustar</button></td>' +
+                    '</tr>';
+            }).join(''));
 
-        // DataTables: búsqueda, orden y paginación (stock más bajo primero)
-        activarDataTable('#tablaInventario', {
-            order: [[2, 'asc']],
-            columnDefs: [{ targets: 3, orderable: false, searchable: false }]
-        });
+            // DataTables: búsqueda, orden y paginación (stock más bajo primero)
+            activarDataTable('#tablaInventario', {
+                order: [[2, 'asc']],
+                columnDefs: [{ targets: 3, orderable: false, searchable: false }]
+            });
+        } finally {
+            ocultarSpinner();
+        }
     }
 
     function abrirAjuste(id, nombre) {
@@ -68,12 +73,17 @@ $(function() {
             cantidad: parseInt($('#ajusteCantidad').val()) || 0,
             motivo: $('#ajusteMotivo').val().trim()
         };
-        var r = await apiAjustarStock(datos);
-        if (r.exito) {
-            mostrarAlerta('alerta', 'success', 'Stock actualizado: ' + r.datos.producto.nombre + ' → ' + r.datos.producto.stock);
-            cerrarModal(); cargarKpis(); cargarAlertas();
-        } else {
-            mostrarAlerta('alerta', 'danger', r.mensaje);
+        botonCargando('btnGuardarAjuste', true, 'Guardando...');
+        try {
+            var r = await apiAjustarStock(datos);
+            if (r.exito) {
+                mostrarAlerta('alerta', 'success', 'Stock actualizado: ' + r.datos.producto.nombre + ' → ' + r.datos.producto.stock);
+                cerrarModal(); cargarKpis(); cargarAlertas();
+            } else {
+                mostrarAlerta('alerta', 'danger', r.mensaje);
+            }
+        } finally {
+            botonCargando('btnGuardarAjuste', false);
         }
     }
 

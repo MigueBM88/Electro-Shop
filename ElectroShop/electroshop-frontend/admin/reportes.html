@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ElectroShop Admin - Reportes</title>
     <link rel="stylesheet" href="../css/styles.css">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 
@@ -16,6 +17,10 @@
         <p class="text-muted mb-1">Panel de métricas e indicadores del negocio</p>
         <div id="alerta" class="alert"></div>
 
+        <!-- Spinner de carga (se muestra con mostrarSpinner / ocultarSpinner) -->
+        <div id="cargando" class="cargando-contenedor d-none">
+            <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div>
+        </div>
         <!-- KPIs -->
         <div id="kpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-bottom:1.5rem"></div>
 

@@ -18,23 +18,28 @@ $(function() {
         var params = '';
         var estado = $('#fEstado').val();
         if (estado) params = '?estado=' + estado;
-        var r = await apiListarTradeInAdmin(params);
-        if (!r.exito) { $cont.html('<p class="text-muted">Error al cargar.</p>'); return; }
-        var ss = r.datos.solicitudes;
-        if (ss.length === 0) { $cont.html('<p class="text-muted">No hay solicitudes.</p>'); return; }
+        mostrarSpinner();
+        try {
+            var r = await apiListarTradeInAdmin(params);
+            if (!r.exito) { $cont.html('<p class="text-muted">Error al cargar.</p>'); return; }
+            var ss = r.datos.solicitudes;
+            if (ss.length === 0) { $cont.html('<p class="text-muted">No hay solicitudes.</p>'); return; }
 
-        $cont.html(ss.map(function(s) {
-            var cliente = s.usuario ? (esc(s.usuario.nombre) + ' (' + esc(s.usuario.correo) + ')') : '—';
-            var oferta = s.ofertaAdmin != null ? ' · Oferta: ' + formatPrecio(s.ofertaAdmin) : '';
-            return '<div class="card" style="margin-bottom:0.75rem">' +
-                '<div style="display:flex;justify-content:space-between;align-items:center">' +
-                '<strong>' + esc(s.nombreEquipo) + '</strong>' + tiBadge(s.estado) + '</div>' +
-                '<div class="text-muted" style="font-size:0.82rem;margin-top:0.3rem">' + esc(s.descripcion) + '</div>' +
-                '<div style="font-size:0.8rem;margin-top:0.3rem">Cliente: ' + cliente + ' · Condición: ' + esc(s.condicionDeclarada) +
-                (s.precioEstimadoCliente ? ' · Espera: ' + formatPrecio(s.precioEstimadoCliente) : '') + oferta + '</div>' +
-                '<button class="btn btn-sm btn-primary" style="margin-top:0.5rem;width:auto" data-action="abrir-eval" data-id="' + esc(s._id) + '" data-nombre="' + esc(s.nombreEquipo) + '" data-oferta="' + esc(s.ofertaAdmin || 0) + '">Evaluar</button>' +
-                '</div>';
-        }).join(''));
+            $cont.html(ss.map(function(s) {
+                var cliente = s.usuario ? (esc(s.usuario.nombre) + ' (' + esc(s.usuario.correo) + ')') : '—';
+                var oferta = s.ofertaAdmin != null ? ' · Oferta: ' + formatPrecio(s.ofertaAdmin) : '';
+                return '<div class="card" style="margin-bottom:0.75rem">' +
+                    '<div style="display:flex;justify-content:space-between;align-items:center">' +
+                    '<strong>' + esc(s.nombreEquipo) + '</strong>' + tiBadge(s.estado) + '</div>' +
+                    '<div class="text-muted" style="font-size:0.82rem;margin-top:0.3rem">' + esc(s.descripcion) + '</div>' +
+                    '<div style="font-size:0.8rem;margin-top:0.3rem">Cliente: ' + cliente + ' · Condición: ' + esc(s.condicionDeclarada) +
+                    (s.precioEstimadoCliente ? ' · Espera: ' + formatPrecio(s.precioEstimadoCliente) : '') + oferta + '</div>' +
+                    '<button class="btn btn-sm btn-primary" style="margin-top:0.5rem;width:auto" data-action="abrir-eval" data-id="' + esc(s._id) + '" data-nombre="' + esc(s.nombreEquipo) + '" data-oferta="' + esc(s.ofertaAdmin || 0) + '">Evaluar</button>' +
+                    '</div>';
+            }).join(''));
+        } finally {
+            ocultarSpinner();
+        }
     }
 
     function abrirEval(id, nombre, oferta) {
@@ -52,9 +57,14 @@ $(function() {
             ofertaAdmin: $('#evalOferta').val() || null,
             notaAdmin: $('#evalNota').val().trim()
         };
-        var r = await apiEvaluarTradeIn($('#evalId').val(), datos);
-        if (r.exito) { mostrarAlerta('alerta', 'success', 'Solicitud evaluada'); cerrarModal(); cargar(); }
-        else mostrarAlerta('alerta', 'danger', r.mensaje);
+        botonCargando('btnGuardarEval', true, 'Guardando...');
+        try {
+            var r = await apiEvaluarTradeIn($('#evalId').val(), datos);
+            if (r.exito) { mostrarAlerta('alerta', 'success', 'Solicitud evaluada'); cerrarModal(); cargar(); }
+            else mostrarAlerta('alerta', 'danger', r.mensaje);
+        } finally {
+            botonCargando('btnGuardarEval', false);
+        }
     }
 
     // === Handlers delegados (antes onclick/onchange inline) ===

@@ -20,38 +20,43 @@ $(function() {
         var estado = $('#fEstado').val();
         if (estado) params += '&estado=' + estado;
 
-        var r = await apiListarResenasAdmin(params);
-        if (!r.exito) { $tbody.html('<tr><td colspan="6" class="text-center text-muted">Error</td></tr>'); return; }
+        mostrarSpinner();
+        try {
+            var r = await apiListarResenasAdmin(params);
+            if (!r.exito) { $tbody.html('<tr><td colspan="6" class="text-center text-muted">Error</td></tr>'); return; }
 
-        var resenas = r.datos.resenas;
-        if (resenas.length === 0) {
-            $tbody.html('<tr><td colspan="6" class="text-center text-muted">No hay reseñas</td></tr>');
-            $('#paginacion').html('');
-            return;
+            var resenas = r.datos.resenas;
+            if (resenas.length === 0) {
+                $tbody.html('<tr><td colspan="6" class="text-center text-muted">No hay reseñas</td></tr>');
+                $('#paginacion').html('');
+                return;
+            }
+
+            $tbody.html(resenas.map(function(re) {
+                var prod = re.producto ? re.producto.nombre : '—';
+                var verif = re.compraVerificada ? ' <span class="badge badge-success" style="font-size:0.6rem">Compra verificada</span>' : '';
+                var estBadge = re.estado === 'publicada' ? '<span class="badge badge-success">Publicada</span>' : '<span class="badge badge-danger">Oculta</span>';
+                var accion = re.estado === 'publicada'
+                    ? '<button class="btn btn-sm btn-outline" data-action="moderar" data-id="' + esc(re._id) + '" data-estado="oculta">Ocultar</button>'
+                    : '<button class="btn btn-sm btn-primary" data-action="moderar" data-id="' + esc(re._id) + '" data-estado="publicada">Publicar</button>';
+                return '<tr>' +
+                    '<td>' + esc(prod) + '</td>' +
+                    '<td>' + esc(re.nombreUsuario || '—') + verif + '</td>' +
+                    '<td>' + estrellas(re.calificacion) + '</td>' +
+                    '<td style="max-width:280px;font-size:0.82rem">' + (re.comentario ? esc(re.comentario) : '<span class="text-muted">(sin comentario)</span>') + '</td>' +
+                    '<td>' + estBadge + '</td>' +
+                    '<td>' + accion + ' <button class="btn btn-sm btn-danger" data-action="eliminar-resena" data-id="' + esc(re._id) + '">🗑️</button></td>' +
+                    '</tr>';
+            }).join(''));
+
+            var pag = r.datos.paginacion;
+            var h = 'Página ' + esc(pag.pagina) + ' de ' + esc(pag.totalPaginas) + ' (' + esc(pag.total) + ') ';
+            if (pag.pagina > 1) h += '<button class="btn btn-sm btn-outline" data-action="ir-pagina" data-pagina="' + (pag.pagina - 1) + '">← Anterior</button> ';
+            if (pag.pagina < pag.totalPaginas) h += '<button class="btn btn-sm btn-outline" data-action="ir-pagina" data-pagina="' + (pag.pagina + 1) + '">Siguiente →</button>';
+            $('#paginacion').html(h);
+        } finally {
+            ocultarSpinner();
         }
-
-        $tbody.html(resenas.map(function(re) {
-            var prod = re.producto ? re.producto.nombre : '—';
-            var verif = re.compraVerificada ? ' <span class="badge badge-success" style="font-size:0.6rem">Compra verificada</span>' : '';
-            var estBadge = re.estado === 'publicada' ? '<span class="badge badge-success">Publicada</span>' : '<span class="badge badge-danger">Oculta</span>';
-            var accion = re.estado === 'publicada'
-                ? '<button class="btn btn-sm btn-outline" data-action="moderar" data-id="' + esc(re._id) + '" data-estado="oculta">Ocultar</button>'
-                : '<button class="btn btn-sm btn-primary" data-action="moderar" data-id="' + esc(re._id) + '" data-estado="publicada">Publicar</button>';
-            return '<tr>' +
-                '<td>' + esc(prod) + '</td>' +
-                '<td>' + esc(re.nombreUsuario || '—') + verif + '</td>' +
-                '<td>' + estrellas(re.calificacion) + '</td>' +
-                '<td style="max-width:280px;font-size:0.82rem">' + (re.comentario ? esc(re.comentario) : '<span class="text-muted">(sin comentario)</span>') + '</td>' +
-                '<td>' + estBadge + '</td>' +
-                '<td>' + accion + ' <button class="btn btn-sm btn-danger" data-action="eliminar-resena" data-id="' + esc(re._id) + '">🗑️</button></td>' +
-                '</tr>';
-        }).join(''));
-
-        var pag = r.datos.paginacion;
-        var h = 'Página ' + esc(pag.pagina) + ' de ' + esc(pag.totalPaginas) + ' (' + esc(pag.total) + ') ';
-        if (pag.pagina > 1) h += '<button class="btn btn-sm btn-outline" data-action="ir-pagina" data-pagina="' + (pag.pagina - 1) + '">← Anterior</button> ';
-        if (pag.pagina < pag.totalPaginas) h += '<button class="btn btn-sm btn-outline" data-action="ir-pagina" data-pagina="' + (pag.pagina + 1) + '">Siguiente →</button>';
-        $('#paginacion').html(h);
     }
 
     function irPagina(n) { paginaActual = n; cargar(); }

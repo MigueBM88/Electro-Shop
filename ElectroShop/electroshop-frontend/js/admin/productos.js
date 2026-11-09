@@ -43,6 +43,7 @@ $(function() {
         if (condicion) params += '&condicion=' + condicion;
         if (activo) params += '&activo=' + activo;
 
+        mostrarSpinner();
         try {
             var r = await apiListarProductosAdmin(params);
             var $tbody = $('#tablaBody');
@@ -82,6 +83,8 @@ $(function() {
             }
         } catch (e) {
             mostrarAlerta('alerta', 'error', 'Error de conexión');
+        } finally {
+            ocultarSpinner();
         }
     }
 
@@ -197,6 +200,7 @@ $(function() {
         var precioOrig = $('#prodPrecioOriginal').val();
         if (precioOrig) datos.precioOriginal = parseFloat(precioOrig);
 
+        botonCargando('btnGuardarProducto', true, 'Guardando...');
         try {
             var r;
             if (id) {
@@ -214,6 +218,8 @@ $(function() {
             }
         } catch (e) {
             mostrarAlerta('alerta', 'error', 'Error de conexión');
+        } finally {
+            botonCargando('btnGuardarProducto', false);
         }
     }
 

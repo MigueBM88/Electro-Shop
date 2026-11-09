@@ -2,6 +2,7 @@
 // ElectroShop - Búsqueda avanzada (migrado a jQuery)
 // ============================================
 $(function() {
+    construirFooterES();
     if (!requiereAuth()) return;
     renderNavbar('buscar');
 
@@ -48,6 +49,7 @@ $(function() {
         params.set('pagina', pagina || 1);
         params.set('limite', 12);
 
+        mostrarSpinner();
         try {
             var r = await apiBuscarProductos('?' + params.toString());
             var $grid = $('#gridResultados');
@@ -84,6 +86,8 @@ $(function() {
             }
         } catch (e) {
             mostrarAlerta('alerta', 'error', 'Error de conexión al buscar');
+        } finally {
+            ocultarSpinner();
         }
     }
 

@@ -2,6 +2,7 @@
 // ElectroShop - Detalle de pedido (migrado a jQuery)
 // ============================================
 $(function() {
+    construirFooterES();
     if (!requiereAuth()) return;
     renderNavbar('pedidos');
 
@@ -14,6 +15,7 @@ $(function() {
         var $cont = $('#contenido');
         if (!pedidoId) { $cont.html('<p class="text-muted">Pedido no especificado.</p>'); return; }
 
+        mostrarSpinner();
         try {
             var r = await apiDetallePedido(pedidoId);
             if (!r.exito) { $cont.html('<p class="text-muted">' + esc(r.mensaje || 'Pedido no encontrado') + '</p>'); return; }
@@ -70,6 +72,8 @@ $(function() {
                 '</div>');
         } catch (e) {
             $cont.html('<p class="text-muted">Error de conexión con el servidor.</p>');
+        } finally {
+            ocultarSpinner();
         }
     }
 

@@ -2,6 +2,7 @@
 // ElectroShop - Checkout (migrado a jQuery)
 // ============================================
 $(function() {
+    construirFooterES();
     if (!requiereAuth()) return;
     renderNavbar('carrito');
 
@@ -11,6 +12,7 @@ $(function() {
 
     async function init() {
         var $cont = $('#contenido');
+        mostrarSpinner();
         try {
             var rc = await apiObtenerCarrito();
             if (!rc.exito || rc.datos.items.length === 0) {
@@ -76,6 +78,8 @@ $(function() {
                 '</div>');
         } catch (e) {
             $cont.html('<p class="text-muted">Error de conexión con el servidor.</p>');
+        } finally {
+            ocultarSpinner();
         }
     }
 
@@ -91,8 +95,8 @@ $(function() {
     }
 
     async function pagar() {
-        var $btn = $('#btnPagar');
-        $btn.prop('disabled', true).text('Procesando...');
+        var redirigiendo = false;
+        botonCargando('btnPagar', true, 'Procesando...');
 
         var datos = {
             metodoPago: $('#metodoPago').val(),
@@ -106,14 +110,16 @@ $(function() {
         try {
             var r = await apiCheckout(datos);
             if (r.exito) {
+                // Igual que antes: si el pago fue exitoso el botón queda deshabilitado mientras redirige
+                redirigiendo = true;
                 window.location.href = 'pedido.html?id=' + r.datos.pedido._id + '&nuevo=1';
             } else {
                 mostrarAlerta('alerta', 'danger', r.mensaje || 'No se pudo procesar el pago');
-                $btn.prop('disabled', false).text('Confirmar y pagar');
             }
         } catch (e) {
             mostrarAlerta('alerta', 'danger', 'Error de conexión con el servidor');
-            $btn.prop('disabled', false).text('Confirmar y pagar');
+        } finally {
+            if (!redirigiendo) botonCargando('btnPagar', false);
         }
     }
     function val(id) { var $el = $('#' + id); return $el.length ? $el.val().trim() : ''; }

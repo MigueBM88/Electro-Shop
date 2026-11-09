@@ -24,20 +24,25 @@ $(function() {
 
     async function cargar() {
         var $tbody = $('#tablaBody');
-        var r = await apiVendedorProductos();
-        if (!r.exito) { $tbody.html('<tr><td colspan="6" class="text-center text-muted">Error</td></tr>'); return; }
-        var ps = r.datos.productos;
-        productosPorId = {};
-        if (ps.length === 0) { $tbody.html('<tr><td colspan="6" class="text-center text-muted">Aún no tienes productos. ¡Crea el primero!</td></tr>'); return; }
-        $tbody.html(ps.map(function(p) {
-            productosPorId[p._id] = p;
-            var cat = p.categoria ? p.categoria.nombre : '—';
-            return '<tr>' +
-                '<td><strong>' + esc(p.nombre) + '</strong><br><span class="text-muted" style="font-size:0.72rem">' + esc(p.marca || '') + '</span></td>' +
-                '<td>' + esc(cat) + '</td><td>' + formatPrecio(p.precio) + '</td><td>' + stockBadge(p.stock) + '</td><td>' + estadoBadge(p.activo) + '</td>' +
-                '<td><button class="btn btn-sm btn-primary" data-action="editar-producto" data-id="' + esc(p._id) + '">Editar</button> ' +
-                '<button class="btn btn-sm btn-danger" data-action="eliminar-producto" data-id="' + esc(p._id) + '">🗑️</button></td></tr>';
-        }).join(''));
+        mostrarSpinner();
+        try {
+            var r = await apiVendedorProductos();
+            if (!r.exito) { $tbody.html('<tr><td colspan="6" class="text-center text-muted">Error</td></tr>'); return; }
+            var ps = r.datos.productos;
+            productosPorId = {};
+            if (ps.length === 0) { $tbody.html('<tr><td colspan="6" class="text-center text-muted">Aún no tienes productos. ¡Crea el primero!</td></tr>'); return; }
+            $tbody.html(ps.map(function(p) {
+                productosPorId[p._id] = p;
+                var cat = p.categoria ? p.categoria.nombre : '—';
+                return '<tr>' +
+                    '<td><strong>' + esc(p.nombre) + '</strong><br><span class="text-muted" style="font-size:0.72rem">' + esc(p.marca || '') + '</span></td>' +
+                    '<td>' + esc(cat) + '</td><td>' + formatPrecio(p.precio) + '</td><td>' + stockBadge(p.stock) + '</td><td>' + estadoBadge(p.activo) + '</td>' +
+                    '<td><button class="btn btn-sm btn-primary" data-action="editar-producto" data-id="' + esc(p._id) + '">Editar</button> ' +
+                    '<button class="btn btn-sm btn-danger" data-action="eliminar-producto" data-id="' + esc(p._id) + '">🗑️</button></td></tr>';
+            }).join(''));
+        } finally {
+            ocultarSpinner();
+        }
     }
 
     function abrirCrear() {
@@ -74,9 +79,14 @@ $(function() {
             descripcion: $('#pDescripcion').val().trim()
         };
         var id = $('#prodId').val();
-        var r = id ? await apiVendedorEditarProducto(id, datos) : await apiVendedorCrearProducto(datos);
-        if (r.exito) { mostrarAlerta('alerta', 'success', 'Producto guardado'); cerrar(); cargar(); }
-        else mostrarAlerta('alerta', 'danger', (r.errores && r.errores[0]) ? r.errores[0].mensaje : r.mensaje);
+        botonCargando('btnGuardarProducto', true, 'Guardando...');
+        try {
+            var r = id ? await apiVendedorEditarProducto(id, datos) : await apiVendedorCrearProducto(datos);
+            if (r.exito) { mostrarAlerta('alerta', 'success', 'Producto guardado'); cerrar(); cargar(); }
+            else mostrarAlerta('alerta', 'danger', (r.errores && r.errores[0]) ? r.errores[0].mensaje : r.mensaje);
+        } finally {
+            botonCargando('btnGuardarProducto', false);
+        }
     }
 
     async function eliminar(id) {

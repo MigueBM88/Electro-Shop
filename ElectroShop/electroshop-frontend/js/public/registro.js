@@ -2,6 +2,7 @@
 // ElectroShop - Registro (jQuery + jQuery Validation 1.20.0)
 // ============================================
 $(function() {
+    construirFooterES();
     if (estaLogueado()) window.location.href = 'perfil.html';
 
     // Reglas personalizadas (iguales a las del backend en userValidators.js)
@@ -49,7 +50,6 @@ $(function() {
             $('#err-' + $(el).attr('id')).text('').removeClass('visible');
         },
         submitHandler: async function() {
-            var $btn = $('#btnReg');
             var $alerta = $('#alerta');
 
             var datos = {
@@ -59,7 +59,7 @@ $(function() {
                 confirmarContrasena: $('#confirmarContrasena').val()
             };
 
-            $btn.prop('disabled', true).html('<span class="spinner"></span> Registrando...');
+            botonCargando('btnReg', true, 'Registrando...');
 
             try {
                 var r = await apiRegistro(datos);
@@ -79,9 +79,9 @@ $(function() {
                 }
             } catch (err) {
                 $alerta.text('Error de conexión con el servidor').attr('class', 'alert alert-error visible');
+            } finally {
+                botonCargando('btnReg', false);
             }
-
-            $btn.prop('disabled', false).html('Registrarse');
         }
     });
 });

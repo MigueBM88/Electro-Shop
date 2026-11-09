@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ElectroShop - Trade-In</title>
     <link rel="stylesheet" href="../css/styles.css">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 </head>
 
 <body>
@@ -30,12 +31,16 @@
                     </select>
                 </div>
                 <div class="form-group"><label>Precio esperado (₡, opcional)</label><input type="number" id="precioEstimado" min="0" placeholder="35000"></div>
-                <button class="btn btn-primary" data-action="enviar-tradein">Enviar solicitud</button>
+                <button class="btn btn-primary" id="btnEnviarTradein" data-action="enviar-tradein">Enviar solicitud</button>
             </div>
 
             <!-- Mis solicitudes -->
             <div>
                 <h3 style="margin-bottom:0.75rem">Mis solicitudes</h3>
+                <!-- Spinner de carga (se muestra con mostrarSpinner / ocultarSpinner) -->
+                <div id="cargando" class="cargando-contenedor d-none">
+                    <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div>
+                </div>
                 <div id="listaSolicitudes"><p class="text-muted">Cargando...</p></div>
             </div>
         </div>

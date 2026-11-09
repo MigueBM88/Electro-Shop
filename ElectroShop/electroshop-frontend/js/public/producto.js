@@ -2,6 +2,7 @@
 // ElectroShop - Detalle de producto (migrado a jQuery)
 // ============================================
 $(function() {
+    construirFooterES();
     if (!requiereAuth()) return;
     renderNavbar('catalogo');
 
@@ -16,6 +17,7 @@ $(function() {
     }
 
     async function cargarProducto() {
+        mostrarSpinner();
         try {
             var r = await apiProductoDetalle(productoId);
 
@@ -101,6 +103,8 @@ $(function() {
 
         } catch (e) {
             mostrarAlerta('alerta', 'error', 'Error al cargar el producto');
+        } finally {
+            ocultarSpinner();
         }
     }
 
@@ -147,7 +151,7 @@ $(function() {
                 '<div class="form-group"><label>Calificación</label>' +
                 '<select id="miCalificacion"><option value="5">★★★★★ (5)</option><option value="4">★★★★ (4)</option><option value="3">★★★ (3)</option><option value="2">★★ (2)</option><option value="1">★ (1)</option></select></div>' +
                 '<div class="form-group"><label>Comentario (opcional)</label><textarea id="miComentario" rows="3" placeholder="¿Qué te pareció el producto?"></textarea></div>' +
-                '<button class="btn btn-primary btn-sm" style="width:auto" data-action="enviar-resena">Publicar reseña</button>' +
+                '<button class="btn btn-primary btn-sm" style="width:auto" id="btnPublicarResena" data-action="enviar-resena">Publicar reseña</button>' +
                 '</div>';
 
             var lista = resenas.length === 0
@@ -175,9 +179,14 @@ $(function() {
             calificacion: parseInt($('#miCalificacion').val()),
             comentario: $('#miComentario').val().trim()
         };
-        var r = await apiCrearResena(datos);
-        if (r.exito) { mostrarAlerta('alerta', 'success', '¡Gracias por tu reseña!'); cargarResenas(); }
-        else mostrarAlerta('alerta', 'danger', r.mensaje || 'No se pudo publicar la reseña');
+        botonCargando('btnPublicarResena', true, 'Publicando...');
+        try {
+            var r = await apiCrearResena(datos);
+            if (r.exito) { mostrarAlerta('alerta', 'success', '¡Gracias por tu reseña!'); cargarResenas(); }
+            else mostrarAlerta('alerta', 'danger', r.mensaje || 'No se pudo publicar la reseña');
+        } finally {
+            botonCargando('btnPublicarResena', false);
+        }
     }
 
     // === Handlers delegados (antes onclick inline) ===

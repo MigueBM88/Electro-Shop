@@ -221,3 +221,104 @@ body { transition: background 0.2s, color 0.2s; }
   box-shadow: var(--shadow-lg); transition: transform 0.2s;
 }
 .theme-toggle:hover { transform: scale(1.1); }
+
+/* ====== SPINNER ESTILO BOOTSTRAP 5.3 (sin cargar Bootstrap) ======
+   Se agrega junto al .spinner propio (arriba), que se conserva por si
+   alguna vista aun lo usa. Usa currentColor: toma el color del texto. */
+.spinner-border,
+.spinner-grow {
+  display: inline-block;
+  width: var(--bs-spinner-width);
+  height: var(--bs-spinner-height);
+  vertical-align: var(--bs-spinner-vertical-align);
+  border-radius: 50%;
+  animation: var(--bs-spinner-animation-speed) linear infinite var(--bs-spinner-animation-name);
+}
+@keyframes spinner-border { to { transform: rotate(360deg); } }
+.spinner-border {
+  --bs-spinner-width: 2rem;
+  --bs-spinner-height: 2rem;
+  --bs-spinner-vertical-align: -0.125em;
+  --bs-spinner-border-width: 0.25em;
+  --bs-spinner-animation-speed: 0.75s;
+  --bs-spinner-animation-name: spinner-border;
+  border: var(--bs-spinner-border-width) solid currentColor;
+  border-right-color: transparent;
+}
+.spinner-border-sm {
+  --bs-spinner-width: 1rem;
+  --bs-spinner-height: 1rem;
+  --bs-spinner-border-width: 0.2em;
+}
+@keyframes spinner-grow {
+  0% { transform: scale(0); }
+  50% { opacity: 1; transform: none; }
+}
+.spinner-grow {
+  --bs-spinner-width: 2rem;
+  --bs-spinner-height: 2rem;
+  --bs-spinner-vertical-align: -0.125em;
+  --bs-spinner-animation-speed: 0.75s;
+  --bs-spinner-animation-name: spinner-grow;
+  background-color: currentColor;
+  opacity: 0;
+}
+.spinner-grow-sm {
+  --bs-spinner-width: 1rem;
+  --bs-spinner-height: 1rem;
+}
+@media (prefers-reduced-motion: reduce) {
+  .spinner-border,
+  .spinner-grow { --bs-spinner-animation-speed: 1.5s; }
+}
+
+/* Texto solo para lectores de pantalla (equivalente a Bootstrap) */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important; height: 1px !important;
+  padding: 0 !important; margin: -1px !important;
+  overflow: hidden !important; clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important; border: 0 !important;
+}
+
+/* Utilidades minimas */
+.d-none { display: none !important; }
+.text-primary { color: var(--primary) !important; }
+
+/* Contenedor centrado para el spinner de carga de cada pagina */
+.cargando-contenedor { text-align: center; margin: 1rem 0; }
+
+/* ====== LOGO CHIP (navbar y footer) ====== */
+.logo-chip {
+  display: inline-block; width: 1.4em; height: 1.4em;
+  vertical-align: middle; color: var(--primary); flex-shrink: 0;
+}
+
+/* ====== FOOTER PUBLICO ======
+   construirFooterES() agrega la clase .con-footer-es al body SOLO en las
+   paginas publicas, asi admin/vendedor no cambian de layout. El body pasa a
+   columna flex con min-height:100vh y el footer usa margin-top:auto para
+   quedar abajo en paginas cortas. Los contenedores usan margin:auto, por eso
+   se les fija width:100% (si no, en flex se encogerian al contenido). */
+body.con-footer-es { display: flex; flex-direction: column; min-height: 100vh; }
+body.con-footer-es > * { flex-shrink: 0; }
+body.con-footer-es > .container,
+body.con-footer-es > .auth-container { width: 100%; }
+.footer-es {
+  margin-top: auto; padding: 1.5rem 4.5rem; text-align: center;
+  border-top: 1px solid var(--gray-200); background: var(--white);
+  color: var(--gray-500); font-size: 0.85rem;
+}
+.footer-es p { margin: 0.15rem 0; }
+.footer-es-brand {
+  font-size: 1.1rem; font-weight: 700; color: var(--gray-900);
+  margin-bottom: 0.35rem;
+}
+.footer-es-brand span { color: var(--primary); }
+.footer-es-brand .logo-chip { margin-right: 0.15em; vertical-align: -0.3em; }
+@media (max-width: 768px) {
+  .footer-es { padding: 1.25rem 1rem 4.5rem; }
+}
+
+/* Chip en las tarjetas de login y registro (mismo tamaño que el emoji anterior) */
+.card-header .icon .logo-chip { width: 1em; height: 1em; vertical-align: middle; color: var(--primary); }

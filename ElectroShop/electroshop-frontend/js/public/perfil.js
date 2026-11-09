@@ -2,6 +2,7 @@
 // ElectroShop - Mi Perfil (migrado a jQuery)
 // ============================================
 $(function() {
+    construirFooterES();
     // Verificar autenticación
     if (!requiereAuth()) return;
     renderNavbar('perfil');
@@ -10,6 +11,7 @@ $(function() {
 
     // Cargar datos del perfil
     async function cargarPerfil() {
+        mostrarSpinner();
         try {
             var r = await apiObtenerPerfil();
             if (r.exito) {
@@ -27,6 +29,8 @@ $(function() {
             }
         } catch (e) {
             mostrarAlerta('alerta', 'error', 'Error al cargar el perfil');
+        } finally {
+            ocultarSpinner();
         }
     }
 
@@ -53,8 +57,7 @@ $(function() {
     // Guardar cambios
     $('#formEditar').on('submit', async function(e) {
         e.preventDefault();
-        var $btn = $('#btnGuardar');
-        $btn.prop('disabled', true).html('<span class="spinner"></span> Guardando...');
+        botonCargando('btnGuardar', true, 'Guardando...');
 
         var datos = {
             nombre: $('#eNombre').val().trim(),
@@ -82,9 +85,9 @@ $(function() {
             }
         } catch (e) {
             mostrarAlerta('alerta', 'error', 'Error de conexión');
+        } finally {
+            botonCargando('btnGuardar', false);
         }
-
-        $btn.prop('disabled', false).html('Guardar cambios');
     });
 
     // === Handlers delegados (antes onclick inline) ===

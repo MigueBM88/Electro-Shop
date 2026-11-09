@@ -2,6 +2,7 @@
 // ElectroShop - Carrito (migrado a jQuery)
 // ============================================
 $(function() {
+    construirFooterES();
     if (!requiereAuth()) return;
     renderNavbar('carrito');
 
@@ -9,6 +10,7 @@ $(function() {
 
     async function cargarCarrito() {
         var $cont = $('#contenido');
+        mostrarSpinner();
         try {
             var r = await apiObtenerCarrito();
             if (!r.exito) { $cont.html('<p class="text-muted">No se pudo cargar el carrito.</p>'); return; }
@@ -61,6 +63,8 @@ $(function() {
                 '</div>');
         } catch (e) {
             $cont.html('<p class="text-muted">Error de conexión con el servidor.</p>');
+        } finally {
+            ocultarSpinner();
         }
     }
 

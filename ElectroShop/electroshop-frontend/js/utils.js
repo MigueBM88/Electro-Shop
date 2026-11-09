@@ -23,6 +23,11 @@ function escaparHtml(valor) {
         .replace(/'/g, '&#39;');
 }
 
+// === Logo: chip minimalista en SVG (usa currentColor; el color lo da .logo-chip en CSS) ===
+function logoChipSVG() {
+    return '<svg class="logo-chip" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="14" height="14" rx="2.5"/><path d="M13 4v5M19 4v5M13 23v5M19 23v5M4 13h5M4 19h5M23 13h5M23 19h5"/></svg>';
+}
+
 // Construye la barra de navegación con jQuery (el nombre del usuario va con .text())
 function construirNavbarES(brandHTML, links, paginaActiva, usuario) {
     var $nav = $('<nav>', { 'class': 'navbar' });
@@ -61,7 +66,7 @@ function renderNavbar(paginaActiva) {
     }
 
     construirNavbarES(
-        '<a href="' + prefix + 'catalogo.html" class="navbar-brand">🔌 Electro<span>Shop</span></a>',
+        '<a href="' + prefix + 'catalogo.html" class="navbar-brand">' + logoChipSVG() + ' Electro<span>Shop</span></a>',
         links, paginaActiva, usuario);
 }
 
@@ -83,7 +88,7 @@ function renderNavbarAdmin(paginaActiva) {
     ];
 
     construirNavbarES(
-        '<a href="usuarios.html" class="navbar-brand">🔌 Electro<span>Shop</span> <small style="font-size:0.7rem;color:var(--warning);">ADMIN</small></a>',
+        '<a href="usuarios.html" class="navbar-brand">' + logoChipSVG() + ' Electro<span>Shop</span> <small style="font-size:0.7rem;color:var(--warning);">ADMIN</small></a>',
         links, paginaActiva, usuario);
 }
 
@@ -99,8 +104,28 @@ function renderNavbarVendedor(paginaActiva) {
     ];
 
     construirNavbarES(
-        '<a href="productos.html" class="navbar-brand">🔌 Electro<span>Shop</span> <small style="font-size:0.7rem;color:var(--success);">VENDEDOR</small></a>',
+        '<a href="productos.html" class="navbar-brand">' + logoChipSVG() + ' Electro<span>Shop</span> <small style="font-size:0.7rem;color:var(--success);">VENDEDOR</small></a>',
         links, paginaActiva, usuario);
+}
+
+// === Footer publico (solo paginas de cliente; se llama desde js/public/*.js) ===
+// Se arma con jQuery; los textos van con .text(). No duplica si ya existe.
+function construirFooterES() {
+    if ($('.footer-es').length) return;
+
+    var $footer = $('<footer>', { 'class': 'footer-es' });
+    $('<div>', { 'class': 'footer-es-brand' })
+        .append(logoChipSVG(), ' Electro', $('<span>').text('Shop'))
+        .appendTo($footer);
+    $('<p>', { 'class': 'footer-es-texto' })
+        .text('Tu tienda en línea de componentes electrónicos, nuevos y reacondicionados.')
+        .appendTo($footer);
+    $('<p>', { 'class': 'footer-es-copy' })
+        .text('© ' + new Date().getFullYear() + ' ElectroShop. Todos los derechos reservados.')
+        .appendTo($footer);
+
+    // La clase en body activa el layout que deja el footer abajo en paginas cortas
+    $('body').addClass('con-footer-es').append($footer);
 }
 
 // === Alertas ===
@@ -115,6 +140,92 @@ function ocultarAlerta(id) {
     var $el = $('#' + id);
     if ($el.length) $el.attr('class', 'alert');
 }
+
+// === Spinner de carga (estilo Bootstrap 5.3, sin cargar Bootstrap) ===
+// El CSS (.spinner-border, .visually-hidden, .d-none, .cargando-contenedor)
+// esta en css/styles.css. Markup esperado en cada pagina:
+//   <div id="cargando" class="cargando-contenedor d-none">
+//     <div class="spinner-border text-primary" role="status">
+//       <span class="visually-hidden">Cargando...</span>
+//     </div>
+//   </div>
+
+// Muestra el contenedor del spinner (quita .d-none)
+function mostrarSpinner(id = 'cargando') {
+    $('#' + id).removeClass('d-none');
+}
+
+// Oculta el contenedor del spinner (agrega .d-none)
+function ocultarSpinner(id = 'cargando') {
+    $('#' + id).addClass('d-none');
+}
+
+// Devuelve el markup Bootstrap del spinner (el texto va escapado)
+function crearSpinnerHTML(texto = 'Cargando...') {
+    return '<div class="spinner-border text-primary" role="status">' +
+        '<span class="visually-hidden">' + escaparHtml(texto) + '</span>' +
+        '</div>';
+}
+
+// Pone un boton en estado "cargando" (deshabilitado + spinner pequeno) o lo restaura.
+// El HTML original se guarda en data-texto-original para devolverlo intacto.
+//   botonCargando('btnGuardar', true, 'Guardando...');   // antes del request
+//   botonCargando('btnGuardar', false);                  // en el finally
+function botonCargando(idBoton, cargando, textoCargando) {
+    var $btn = $('#' + idBoton);
+    if (!$btn.length) return;
+
+    if (cargando) {
+        // Solo guardar el original la primera vez (evita guardar el spinner si se llama dos veces)
+        if ($btn.attr('data-texto-original') === undefined) {
+            $btn.attr('data-texto-original', $btn.html());
+        }
+        $btn.prop('disabled', true)
+            .attr('aria-busy', 'true')
+            .html('<span class="spinner-border spinner-border-sm" aria-hidden="true"></span> ' +
+                '<span role="status">' + escaparHtml(textoCargando || 'Cargando...') + '</span>');
+    } else {
+        var original = $btn.attr('data-texto-original');
+        if (original !== undefined) {
+            $btn.html(original).removeAttr('data-texto-original');
+        }
+        $btn.prop('disabled', false).removeAttr('aria-busy');
+    }
+}
+
+/*
+ * Version equivalente en JavaScript "vanilla" (como la mostro el profesor).
+ * Solo como referencia; el proyecto usa las versiones jQuery de arriba.
+ *
+ *   function mostrarSpinner(id = 'cargando') {
+ *       document.getElementById(id).classList.remove('d-none');
+ *   }
+ *
+ *   function ocultarSpinner(id = 'cargando') {
+ *       document.getElementById(id).classList.add('d-none');
+ *   }
+ *
+ *   // Uso tipico:
+ *   async function cargarDatos() {
+ *       mostrarSpinner();
+ *       try {
+ *           const r = await fetch(url);
+ *           // ... pintar datos ...
+ *       } finally {
+ *           ocultarSpinner();   // se ejecuta siempre, incluso si hay error
+ *       }
+ *   }
+ */
+
+// Exponer en window (igual que el resto de helpers globales)
+$.extend(window, {
+    mostrarSpinner: mostrarSpinner,
+    ocultarSpinner: ocultarSpinner,
+    crearSpinnerHTML: crearSpinnerHTML,
+    botonCargando: botonCargando,
+    logoChipSVG: logoChipSVG,
+    construirFooterES: construirFooterES
+});
 
 // === Autenticación ===
 function requiereAuth() {

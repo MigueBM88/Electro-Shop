@@ -15,6 +15,7 @@ $(function() {
         if (estado) params += '&estado=' + estado;
 
         limpiarDataTable('#tablaPedidos');
+        mostrarSpinner();
         try {
             var r = await apiListarPedidosAdmin(params);
             if (!r.exito) { $tbody.html('<tr><td colspan="7" class="text-center text-muted">Error al cargar</td></tr>'); return; }
@@ -52,6 +53,8 @@ $(function() {
             });
         } catch (e) {
             $tbody.html('<tr><td colspan="7" class="text-center text-muted">Error de conexión</td></tr>');
+        } finally {
+            ocultarSpinner();
         }
     }
 

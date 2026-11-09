@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ElectroShop - Catálogo</title>
     <link rel="stylesheet" href="../css/styles.css">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 </head>
 
 <body>
@@ -13,6 +14,10 @@
     <div class="container">
         <div id="alerta" class="alert"></div>
 
+        <!-- Spinner de carga (se muestra con mostrarSpinner / ocultarSpinner) -->
+        <div id="cargando" class="cargando-contenedor d-none">
+            <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div>
+        </div>
         <!-- ====== VISTA: CATEGORÍAS PRINCIPALES ====== -->
         <div id="vistaCategorias">
             <h2 style="margin-bottom:0.5rem">🛍️ Catálogo de Componentes Electrónicos</h2>

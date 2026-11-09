@@ -2,6 +2,7 @@
 // ElectroShop - Mis Pedidos (migrado a jQuery)
 // ============================================
 $(function() {
+    construirFooterES();
     if (!requiereAuth()) return;
     renderNavbar('pedidos');
 
@@ -9,6 +10,7 @@ $(function() {
 
     async function cargar() {
         var $cont = $('#contenido');
+        mostrarSpinner();
         try {
             var r = await apiMisPedidos();
             if (!r.exito) { $cont.html('<p class="text-muted">No se pudieron cargar los pedidos.</p>'); return; }
@@ -38,6 +40,8 @@ $(function() {
                 }).join('') + '</tbody></table></div></div>');
         } catch (e) {
             $cont.html('<p class="text-muted">Error de conexión con el servidor.</p>');
+        } finally {
+            ocultarSpinner();
         }
     }
 

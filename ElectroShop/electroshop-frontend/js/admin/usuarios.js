@@ -17,6 +17,7 @@ $(function() {
         if (rol) params += '&rol=' + rol;
         if (activo) params += '&activo=' + activo;
 
+        mostrarSpinner();
         try {
             var r = await apiListarUsuarios(params);
             if (!r.exito) return mostrarAlerta('alerta', 'error', r.mensaje);
@@ -53,6 +54,8 @@ $(function() {
             }
         } catch (e) {
             mostrarAlerta('alerta', 'error', 'Error de conexión');
+        } finally {
+            ocultarSpinner();
         }
     }
 
@@ -75,6 +78,7 @@ $(function() {
         var id = $('#modalUserId').val();
         var nuevoRol = $('#modalSelectRol').val();
 
+        botonCargando('btnGuardarRol', true, 'Guardando...');
         try {
             var r = await apiCambiarRol(id, nuevoRol);
             if (r.exito) {
@@ -86,6 +90,8 @@ $(function() {
             cargarUsuarios();
         } catch (e) {
             mostrarAlerta('alerta', 'error', 'Error de conexión');
+        } finally {
+            botonCargando('btnGuardarRol', false);
         }
     }
 

@@ -2,6 +2,7 @@
 // ElectroShop - Catálogo (migrado a jQuery)
 // ============================================
 $(function() {
+    construirFooterES();
     if (!requiereAuth()) return;
     renderNavbar('catalogo');
 
@@ -21,6 +22,7 @@ $(function() {
 
     // === Cargar categorías principales ===
     async function cargarCategorias() {
+        mostrarSpinner();
         try {
             var r = await apiCategoriasPrincipales();
             var $grid = $('#gridCategorias');
@@ -42,6 +44,8 @@ $(function() {
             }
         } catch (e) {
             mostrarAlerta('alerta', 'error', 'Error al cargar categorías. ¿Está corriendo el backend?');
+        } finally {
+            ocultarSpinner();
         }
     }
 
@@ -75,6 +79,7 @@ $(function() {
 
     // === Cargar productos con paginación ===
     async function cargarProductosCategoria(catId, pagina) {
+        mostrarSpinner();
         try {
             var r = await apiProductosPorCategoria(catId, '?pagina=' + pagina + '&limite=8');
             var $grid = $('#gridProductos');
@@ -99,6 +104,8 @@ $(function() {
             }
         } catch (e) {
             mostrarAlerta('alerta', 'error', 'Error al cargar productos');
+        } finally {
+            ocultarSpinner();
         }
     }
 

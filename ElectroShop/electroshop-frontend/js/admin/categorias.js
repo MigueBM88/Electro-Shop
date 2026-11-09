@@ -10,6 +10,7 @@ $(function() {
 
     // === Cargar árbol de categorías ===
     async function cargarArbol() {
+        mostrarSpinner();
         try {
             var r = await apiArbolCategorias(false);
             if (r.exito) {
@@ -37,6 +38,8 @@ $(function() {
             }
         } catch (e) {
             mostrarAlerta('alerta', 'error', 'Error al cargar categorías');
+        } finally {
+            ocultarSpinner();
         }
     }
 
@@ -131,6 +134,7 @@ $(function() {
             return;
         }
 
+        botonCargando('btnGuardarCat', true, 'Guardando...');
         try {
             var r;
             if (id) {
@@ -148,6 +152,8 @@ $(function() {
             }
         } catch (e) {
             mostrarAlerta('alerta', 'error', 'Error de conexión');
+        } finally {
+            botonCargando('btnGuardarCat', false);
         }
     }
 

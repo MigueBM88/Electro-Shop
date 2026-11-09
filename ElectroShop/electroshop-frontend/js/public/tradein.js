@@ -2,6 +2,7 @@
 // ElectroShop - Trade-In (cliente) (migrado a jQuery)
 // ============================================
 $(function() {
+    construirFooterES();
     if (!requiereAuth()) return;
     renderNavbar('tradein');
 
@@ -18,23 +19,28 @@ $(function() {
 
     async function cargar() {
         var $cont = $('#listaSolicitudes');
-        var r = await apiMisTradeIn();
-        if (!r.exito) { $cont.html('<p class="text-muted">No se pudo cargar.</p>'); return; }
-        var ss = r.datos.solicitudes;
-        if (ss.length === 0) { $cont.html('<p class="text-muted">Aún no tienes solicitudes.</p>'); return; }
+        mostrarSpinner();
+        try {
+            var r = await apiMisTradeIn();
+            if (!r.exito) { $cont.html('<p class="text-muted">No se pudo cargar.</p>'); return; }
+            var ss = r.datos.solicitudes;
+            if (ss.length === 0) { $cont.html('<p class="text-muted">Aún no tienes solicitudes.</p>'); return; }
 
-        $cont.html(ss.map(function(s) {
-            var oferta = s.ofertaAdmin != null ? '<div style="margin-top:0.4rem"><strong>Oferta de ElectroShop:</strong> ' + formatPrecio(s.ofertaAdmin) + '</div>' : '';
-            var nota = s.notaAdmin ? '<div class="text-muted" style="font-size:0.8rem;margin-top:0.3rem">Nota: ' + esc(s.notaAdmin) + '</div>' : '';
-            return '<div class="card" style="margin-bottom:0.75rem">' +
-                '<div style="display:flex;justify-content:space-between;align-items:center">' +
-                '<strong>' + esc(s.nombreEquipo) + '</strong>' + tiBadge(s.estado) + '</div>' +
-                '<div class="text-muted" style="font-size:0.82rem;margin-top:0.3rem">' + esc(s.descripcion) + '</div>' +
-                '<div style="font-size:0.8rem;margin-top:0.3rem">Condición: ' + esc(s.condicionDeclarada) + (s.precioEstimadoCliente ? ' · Esperabas: ' + formatPrecio(s.precioEstimadoCliente) : '') + '</div>' +
-                oferta + nota +
-                '<div class="text-muted" style="font-size:0.72rem;margin-top:0.3rem">' + formatFecha(s.createdAt) + '</div>' +
-                '</div>';
-        }).join(''));
+            $cont.html(ss.map(function(s) {
+                var oferta = s.ofertaAdmin != null ? '<div style="margin-top:0.4rem"><strong>Oferta de ElectroShop:</strong> ' + formatPrecio(s.ofertaAdmin) + '</div>' : '';
+                var nota = s.notaAdmin ? '<div class="text-muted" style="font-size:0.8rem;margin-top:0.3rem">Nota: ' + esc(s.notaAdmin) + '</div>' : '';
+                return '<div class="card" style="margin-bottom:0.75rem">' +
+                    '<div style="display:flex;justify-content:space-between;align-items:center">' +
+                    '<strong>' + esc(s.nombreEquipo) + '</strong>' + tiBadge(s.estado) + '</div>' +
+                    '<div class="text-muted" style="font-size:0.82rem;margin-top:0.3rem">' + esc(s.descripcion) + '</div>' +
+                    '<div style="font-size:0.8rem;margin-top:0.3rem">Condición: ' + esc(s.condicionDeclarada) + (s.precioEstimadoCliente ? ' · Esperabas: ' + formatPrecio(s.precioEstimadoCliente) : '') + '</div>' +
+                    oferta + nota +
+                    '<div class="text-muted" style="font-size:0.72rem;margin-top:0.3rem">' + formatFecha(s.createdAt) + '</div>' +
+                    '</div>';
+            }).join(''));
+        } finally {
+            ocultarSpinner();
+        }
     }
 
     async function enviar() {
@@ -48,15 +54,20 @@ $(function() {
             mostrarAlerta('alerta', 'danger', 'Completa el equipo y la descripción');
             return;
         }
-        var r = await apiCrearTradeIn(datos);
-        if (r.exito) {
-            mostrarAlerta('alerta', 'success', 'Solicitud enviada. Te avisaremos cuando la evaluemos.');
-            $('#nombreEquipo').val('');
-            $('#descripcion').val('');
-            $('#precioEstimado').val('');
-            cargar();
-        } else {
-            mostrarAlerta('alerta', 'danger', r.mensaje);
+        botonCargando('btnEnviarTradein', true, 'Enviando...');
+        try {
+            var r = await apiCrearTradeIn(datos);
+            if (r.exito) {
+                mostrarAlerta('alerta', 'success', 'Solicitud enviada. Te avisaremos cuando la evaluemos.');
+                $('#nombreEquipo').val('');
+                $('#descripcion').val('');
+                $('#precioEstimado').val('');
+                cargar();
+            } else {
+                mostrarAlerta('alerta', 'danger', r.mensaje);
+            }
+        } finally {
+            botonCargando('btnEnviarTradein', false);
         }
     }
 
