@@ -3,7 +3,7 @@ const router = express.Router();
 const { protegerRuta } = require('../middlewares/auth');
 const { autorizarRol } = require('../middlewares/roleAuth');
 const { validarProducto, validarEdicionProducto } = require('../validators/productoValidators');
-const { validarId } = require('../validators/commonValidators');
+const { validarId, validarQueryIds, validarQueryTextos } = require('../validators/commonValidators');
 const {
   productosPorCategoria,
   buscarProductos,
@@ -20,7 +20,7 @@ const {
 // IMPORTANTE: las rutas específicas van ANTES de /:id
 // para que Express no interprete 'buscar', 'marcas', etc. como un id.
 // ============================================
-router.get('/buscar', buscarProductos);
+router.get('/buscar', validarQueryIds('categoria'), validarQueryTextos('busqueda', 'condicion'), buscarProductos);
 router.get('/marcas', listarMarcas);
 router.get('/categoria/:catId', validarId('catId'), productosPorCategoria);
 
@@ -28,7 +28,7 @@ router.get('/categoria/:catId', validarId('catId'), productosPorCategoria);
 // RUTAS ADMIN (requieren token + rol admin)
 // /admin/lista va antes de /:id
 // ============================================
-router.get('/admin/lista', protegerRuta, autorizarRol('admin'), listarProductosAdmin);
+router.get('/admin/lista', protegerRuta, autorizarRol('admin'), validarQueryIds('categoria'), validarQueryTextos('busqueda', 'condicion', 'activo'), listarProductosAdmin);
 
 // Detalle público por id (debe ir después de las rutas específicas)
 router.get('/:id', validarId(), detalleProducto);

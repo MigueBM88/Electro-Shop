@@ -6,12 +6,26 @@ const erroresValidacion = (req, res) => {
   if (!errores.isEmpty()) {
     res.status(400).json({
       exito: false,
-      mensaje: 'Error de validación',
+      mensaje: errores.array()[0].msg || 'Error de validación',
       errores: errores.array().map((err) => ({ campo: err.path, mensaje: err.msg }))
     });
     return true;
   }
   return false;
+};
+
+// Campos que el admin puede asignar al crear/editar un producto (el resto se ignora)
+const CAMPOS_PRODUCTO_ADMIN = [
+  'nombre', 'descripcion', 'sku', 'marca', 'categoria', 'precio', 'precioOriginal',
+  'stock', 'condicion', 'especificaciones', 'imagenes', 'datasheetUrl', 'activo', 'vendedor'
+];
+
+const tomarCamposPermitidos = (body) => {
+  const datos = {};
+  CAMPOS_PRODUCTO_ADMIN.forEach((campo) => {
+    if (body && body[campo] !== undefined) datos[campo] = body[campo];
+  });
+  return datos;
 };
 
 // Construye objeto de paginación estándar
@@ -174,7 +188,7 @@ const crearProducto = async (req, res) => {
   try {
     if (erroresValidacion(req, res)) return;
 
-    const producto = await Producto.create(req.body);
+    const producto = await Producto.create(tomarCamposPermitidos(req.body));
     await producto.populate('categoria', 'nombre');
 
     res.status(201).json({
@@ -187,7 +201,7 @@ const crearProducto = async (req, res) => {
     if (error.name === 'ValidationError') {
       return res.status(400).json({
         exito: false,
-        mensaje: 'Error de validación',
+        mensaje: Object.values(error.errors)[0]?.message || 'Error de validación',
         errores: Object.values(error.errors).map((e) => ({ campo: e.path, mensaje: e.message }))
       });
     }
@@ -200,7 +214,7 @@ const editarProducto = async (req, res) => {
   try {
     if (erroresValidacion(req, res)) return;
 
-    const producto = await Producto.findByIdAndUpdate(req.params.id, req.body, {
+    const producto = await Producto.findByIdAndUpdate(req.params.id, tomarCamposPermitidos(req.body), {
       new: true,
       runValidators: true
     }).populate('categoria', 'nombre');
@@ -219,7 +233,7 @@ const editarProducto = async (req, res) => {
     if (error.name === 'ValidationError') {
       return res.status(400).json({
         exito: false,
-        mensaje: 'Error de validación',
+        mensaje: Object.values(error.errors)[0]?.message || 'Error de validación',
         errores: Object.values(error.errors).map((e) => ({ campo: e.path, mensaje: e.message }))
       });
     }

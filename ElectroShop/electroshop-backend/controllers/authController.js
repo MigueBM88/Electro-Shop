@@ -17,7 +17,7 @@ const registrarUsuario = async (req, res) => {
     if (!errores.isEmpty()) {
       return res.status(400).json({
         exito: false,
-        mensaje: 'Error de validación en los campos del formulario',
+        mensaje: errores.array()[0].msg || 'Error de validación',
         errores: errores.array().map((err) => ({ campo: err.path, mensaje: err.msg }))
       });
     }
@@ -197,7 +197,7 @@ const editarPerfil = async (req, res) => {
     if (!errores.isEmpty()) {
       return res.status(400).json({
         exito: false,
-        mensaje: 'Error de validación en los campos del perfil',
+        mensaje: errores.array()[0].msg || 'Error de validación',
         errores: errores.array().map((err) => ({ campo: err.path, mensaje: err.msg }))
       });
     }
@@ -244,7 +244,7 @@ const cambiarContrasena = async (req, res) => {
     if (!errores.isEmpty()) {
       return res.status(400).json({
         exito: false,
-        mensaje: 'Error de validación',
+        mensaje: errores.array()[0].msg || 'Error de validación',
         errores: errores.array().map((err) => ({ campo: err.path, mensaje: err.msg }))
       });
     }

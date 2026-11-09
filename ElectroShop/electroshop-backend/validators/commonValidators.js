@@ -1,4 +1,4 @@
-const { param, validationResult } = require('express-validator');
+const { param, query, validationResult } = require('express-validator');
 
 // Middleware compartido: corta la petición con 400 si hubo errores de validación.
 // Mantiene el mismo formato que usan los controladores (erroresValidacion):
@@ -8,7 +8,7 @@ const manejarErroresValidacion = (req, res, next) => {
   if (!errores.isEmpty()) {
     return res.status(400).json({
       exito: false,
-      mensaje: 'Error de validación',
+      mensaje: errores.array()[0].msg || 'Error de validación',
       errores: errores.array().map((err) => ({ campo: err.path, mensaje: err.msg }))
     });
   }
@@ -23,4 +23,25 @@ const validarId = (paramName = 'id') => [
   manejarErroresValidacion
 ];
 
-module.exports = { validarId, manejarErroresValidacion };
+// Filtros opcionales de query que deben ser ObjectId (?categoria=, ?productoId=).
+// Vacío se permite; también bloquea objetos como ?categoria[$ne]=x
+const validarQueryIds = (...nombres) => [
+  ...nombres.map((n) =>
+    query(n)
+      .optional({ values: 'falsy' })
+      .isString().withMessage(`El filtro '${n}' no es válido`)
+      .bail()
+      .isMongoId().withMessage(`El filtro '${n}' no es un identificador válido`)
+  ),
+  manejarErroresValidacion
+];
+
+// Filtros de texto de query: solo strings simples (bloquea ?estado[$ne]=x)
+const validarQueryTextos = (...nombres) => [
+  ...nombres.map((n) =>
+    query(n).optional().isString().withMessage(`El filtro '${n}' no es válido`)
+  ),
+  manejarErroresValidacion
+];
+
+module.exports = { validarId, validarQueryIds, validarQueryTextos, manejarErroresValidacion };

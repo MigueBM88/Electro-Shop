@@ -71,7 +71,7 @@ const cambiarRolUsuario = async (req, res) => {
     if (!errores.isEmpty()) {
       return res.status(400).json({
         exito: false,
-        mensaje: 'Error de validación',
+        mensaje: errores.array()[0].msg || 'Error de validación',
         errores: errores.array().map((err) => ({ campo: err.path, mensaje: err.msg }))
       });
     }
