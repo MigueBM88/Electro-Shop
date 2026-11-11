@@ -342,3 +342,87 @@ $(function() {
         $(this).css('transform', 'none');
     });
 });
+
+
+// ============================================
+// Manejo de errores: modal reutilizable + validación en línea
+// ============================================
+
+// Muestra un modal de error con el estilo de ElectroShop.
+// mensaje puede ser un string o un arreglo de strings (se muestra como lista).
+function mostrarErrorModal(mensaje, titulo) {
+    $('#esErrorModal').remove();
+    var $cuerpo = $('<div>', { 'class': 'es-error-body' });
+    if (Array.isArray(mensaje)) {
+        var $ul = $('<ul>');
+        $.each(mensaje, function(_, m) { $('<li>').text(m).appendTo($ul); });
+        $cuerpo.append($ul);
+    } else {
+        $('<p>').text(mensaje || 'Ocurrió un error inesperado.').appendTo($cuerpo);
+    }
+    var $overlay = $('<div>', { id: 'esErrorModal', 'class': 'es-error-overlay', role: 'alertdialog', 'aria-modal': 'true', 'aria-labelledby': 'esErrorTitulo' });
+    var $caja = $('<div>', { 'class': 'es-error-modal' })
+        .append($('<div>', { 'class': 'es-error-icon', 'aria-hidden': 'true' }).text('⚠️'))
+        .append($('<h3>', { id: 'esErrorTitulo' }).text(titulo || 'Algo salió mal'))
+        .append($cuerpo)
+        .append($('<button>', { type: 'button', 'class': 'btn btn-primary es-error-cerrar' }).text('Entendido'));
+    $overlay.append($caja).appendTo('body');
+    $overlay.find('.es-error-cerrar').trigger('focus');
+}
+
+function cerrarErrorModal() { $('#esErrorModal').remove(); }
+
+$(document).on('click', '.es-error-cerrar', cerrarErrorModal);
+$(document).on('click', '#esErrorModal', function(e) { if (e.target === this) cerrarErrorModal(); });
+$(document).on('keydown', function(e) { if (e.key === 'Escape') cerrarErrorModal(); });
+
+// Marca un campo como inválido y muestra el mensaje debajo de él.
+function marcarCampoError(idCampo, mensaje) {
+    var $campo = $('#' + idCampo);
+    $campo.addClass('input-error').attr('aria-invalid', 'true');
+    var idMsg = idCampo + 'Error';
+    $('#' + idMsg).remove();
+    $('<small>', { id: idMsg, 'class': 'campo-error-msg' }).text(mensaje).insertAfter($campo);
+    $campo.attr('aria-describedby', idMsg);
+}
+
+// Limpia los errores de un campo, o de todos dentro de un contenedor.
+function limpiarErrores(selectorContenedor) {
+    var $c = $(selectorContenedor || document);
+    $c.find('.input-error').removeClass('input-error').removeAttr('aria-invalid aria-describedby');
+    $c.find('.campo-error-msg').remove();
+}
+
+// Al escribir o cambiar un campo con error, se quita su error.
+$(document).on('input change', '.input-error', function() {
+    $(this).removeClass('input-error').removeAttr('aria-invalid aria-describedby');
+    $('#' + this.id + 'Error').remove();
+});
+
+
+// Modal de confirmación (reemplaza confirm()). Devuelve una Promise<boolean>.
+// Uso: if (!(await confirmarModal('¿Eliminar?'))) return;
+function confirmarModal(mensaje, titulo, textoAceptar) {
+    return new Promise(function(resolve) {
+        $('#esConfirmModal').remove();
+        var $overlay = $('<div>', { id: 'esConfirmModal', 'class': 'es-error-overlay', role: 'alertdialog', 'aria-modal': 'true', 'aria-labelledby': 'esConfirmTitulo' });
+        var $caja = $('<div>', { 'class': 'es-error-modal es-confirm-modal' })
+            .append($('<div>', { 'class': 'es-error-icon', 'aria-hidden': 'true' }).text('❓'))
+            .append($('<h3>', { id: 'esConfirmTitulo' }).text(titulo || 'Confirmar acción'))
+            .append($('<div>', { 'class': 'es-error-body' }).append($('<p>').text(mensaje)))
+            .append($('<div>', { 'class': 'es-confirm-botones' })
+                .append($('<button>', { type: 'button', 'class': 'btn btn-secondary es-confirm-no' }).text('Cancelar'))
+                .append($('<button>', { type: 'button', 'class': 'btn btn-danger es-confirm-si' }).text(textoAceptar || 'Aceptar')));
+        function cerrar(valor) {
+            $(document).off('keydown.esConfirm');
+            $overlay.remove();
+            resolve(valor);
+        }
+        $caja.on('click', '.es-confirm-si', function() { cerrar(true); });
+        $caja.on('click', '.es-confirm-no', function() { cerrar(false); });
+        $overlay.on('click', function(e) { if (e.target === this) cerrar(false); });
+        $(document).on('keydown.esConfirm', function(e) { if (e.key === 'Escape') cerrar(false); });
+        $overlay.append($caja).appendTo('body');
+        $caja.find('.es-confirm-no').trigger('focus');
+    });
+}

@@ -43,6 +43,7 @@ $(function() {
     }
 
     function abrirEval(id, nombre, oferta) {
+        limpiarErrores();
         $('#evalId').val(id);
         $('#evalTitulo').text('Evaluar: ' + nombre);
         $('#evalOferta').val(oferta || '');
@@ -57,11 +58,21 @@ $(function() {
             ofertaAdmin: $('#evalOferta').val() || null,
             notaAdmin: $('#evalNota').val().trim()
         };
+        limpiarErrores();
+        var hayErrores = false;
+        function error(id, msg) {
+            marcarCampoError(id, msg);
+            if (!hayErrores) $('#' + id).trigger('focus');
+            hayErrores = true;
+        }
+        if (datos.ofertaAdmin !== null && (isNaN(parseFloat(datos.ofertaAdmin)) || parseFloat(datos.ofertaAdmin) < 0)) error('evalOferta', 'La oferta debe ser un monto válido (0 o más)');
+        if (datos.notaAdmin.length > 1000) error('evalNota', 'La nota no puede exceder 1000 caracteres');
+        if (hayErrores) return;
         botonCargando('btnGuardarEval', true, 'Guardando...');
         try {
             var r = await apiEvaluarTradeIn($('#evalId').val(), datos);
             if (r.exito) { mostrarAlerta('alerta', 'success', 'Solicitud evaluada'); cerrarModal(); cargar(); }
-            else mostrarAlerta('alerta', 'danger', r.mensaje);
+            else mostrarErrorModal(r.mensaje);
         } finally {
             botonCargando('btnGuardarEval', false);
         }

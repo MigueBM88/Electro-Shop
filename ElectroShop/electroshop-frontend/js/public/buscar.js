@@ -85,7 +85,7 @@ $(function() {
                 }
             }
         } catch (e) {
-            mostrarAlerta('alerta', 'error', 'Error de conexión al buscar');
+            mostrarErrorModal('Error de conexión al buscar');
         } finally {
             ocultarSpinner();
         }

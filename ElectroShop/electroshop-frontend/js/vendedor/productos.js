@@ -46,6 +46,7 @@ $(function() {
     }
 
     function abrirCrear() {
+        limpiarErrores();
         $('#modalTitulo').text('Nuevo Producto');
         $('#prodId').val('');
         $('#pNombre, #pSku, #pPrecio, #pStock, #pDescripcion').val('');
@@ -53,6 +54,7 @@ $(function() {
         $('#modal').addClass('visible');
     }
     function editar(p) {
+        limpiarErrores();
         $('#modalTitulo').text('Editar Producto');
         $('#prodId').val(p._id);
         $('#pNombre').val(p.nombre);
@@ -78,21 +80,40 @@ $(function() {
             condicion: $('#pCondicion').val(),
             descripcion: $('#pDescripcion').val().trim()
         };
+        limpiarErrores();
+        var hayErrores = false;
+        function error(id, msg) {
+            marcarCampoError(id, msg);
+            if (!hayErrores) $('#' + id).trigger('focus');
+            hayErrores = true;
+        }
+        if (!datos.nombre) error('pNombre', 'El nombre es obligatorio');
+        else if (datos.nombre.length < 2 || datos.nombre.length > 150) error('pNombre', 'El nombre debe tener entre 2 y 150 caracteres');
+        if (datos.sku.length > 50) error('pSku', 'El SKU no puede exceder 50 caracteres');
+        if (datos.marca.length > 80) error('pMarca', 'La marca no puede exceder 80 caracteres');
+        if (!datos.categoria) error('pCategoria', 'Selecciona una categoría');
+        if (isNaN(datos.precio)) error('pPrecio', 'El precio es obligatorio');
+        else if (datos.precio < 0) error('pPrecio', 'El precio no puede ser negativo');
+        if (isNaN(datos.stock)) error('pStock', 'El stock es obligatorio');
+        else if (!/^\d+$/.test($('#pStock').val())) error('pStock', 'El stock debe ser un número entero mayor o igual a 0');
+        if (!datos.descripcion) error('pDescripcion', 'La descripción es obligatoria');
+        else if (datos.descripcion.length > 2000) error('pDescripcion', 'La descripción no puede exceder 2000 caracteres');
+        if (hayErrores) return;
         var id = $('#prodId').val();
         botonCargando('btnGuardarProducto', true, 'Guardando...');
         try {
             var r = id ? await apiVendedorEditarProducto(id, datos) : await apiVendedorCrearProducto(datos);
             if (r.exito) { mostrarAlerta('alerta', 'success', 'Producto guardado'); cerrar(); cargar(); }
-            else mostrarAlerta('alerta', 'danger', (r.errores && r.errores[0]) ? r.errores[0].mensaje : r.mensaje);
+            else mostrarErrorModal((r.errores && r.errores[0]) ? r.errores[0].mensaje : r.mensaje);
         } finally {
             botonCargando('btnGuardarProducto', false);
         }
     }
 
     async function eliminar(id) {
-        if (!confirm('¿Eliminar este producto?')) return;
+        if (!(await confirmarModal('¿Eliminar este producto?'))) return;
         var r = await apiVendedorEliminarProducto(id);
-        if (r.exito) mostrarAlerta('alerta', 'success', 'Producto eliminado'); else mostrarAlerta('alerta', 'danger', r.mensaje);
+        if (r.exito) mostrarAlerta('alerta', 'success', 'Producto eliminado'); else mostrarErrorModal(r.mensaje);
         cargar();
     }
 

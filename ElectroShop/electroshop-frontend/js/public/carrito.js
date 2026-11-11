@@ -70,7 +70,7 @@ $(function() {
 
     async function actualizarCantidad(id, cantidad) {
         var r = await apiActualizarItemCarrito(id, parseInt(cantidad));
-        if (!r.exito) mostrarAlerta('alerta', 'danger', r.mensaje);
+        if (!r.exito) mostrarErrorModal(r.mensaje);
         cargarCarrito();
     }
 
@@ -81,7 +81,7 @@ $(function() {
     }
 
     async function vaciar() {
-        if (!confirm('¿Vaciar todo el carrito?')) return;
+        if (!(await confirmarModal('¿Vaciar todo el carrito?'))) return;
         await apiVaciarCarrito();
         cargarCarrito();
     }

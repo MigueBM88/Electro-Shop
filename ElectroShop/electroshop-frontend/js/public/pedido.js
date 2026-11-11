@@ -86,10 +86,10 @@ $(function() {
     }
 
     async function cancelar() {
-        if (!confirm('¿Seguro que deseas cancelar este pedido? El stock será repuesto.')) return;
+        if (!(await confirmarModal('¿Seguro que deseas cancelar este pedido? El stock será repuesto.'))) return;
         var r = await apiCancelarPedido(pedidoId);
         if (r.exito) { mostrarAlerta('alerta', 'success', 'Pedido cancelado'); cargar(); }
-        else mostrarAlerta('alerta', 'danger', r.mensaje);
+        else mostrarErrorModal(r.mensaje);
     }
 
     // === Handler delegado (antes onclick inline) ===

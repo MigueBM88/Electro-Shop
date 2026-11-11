@@ -102,7 +102,7 @@ $(function() {
             }
 
         } catch (e) {
-            mostrarAlerta('alerta', 'error', 'Error al cargar el producto');
+            mostrarErrorModal('Error al cargar el producto');
         } finally {
             ocultarSpinner();
         }
@@ -117,10 +117,10 @@ $(function() {
                 $('#alerta').append($('<a>', { href: 'carrito.html' }).text('Ver carrito'));
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             } else {
-                mostrarAlerta('alerta', 'danger', r.mensaje || 'No se pudo agregar al carrito');
+                mostrarErrorModal(r.mensaje || 'No se pudo agregar al carrito');
             }
         } catch (e) {
-            mostrarAlerta('alerta', 'danger', 'Error de conexión con el servidor');
+            mostrarErrorModal('Error de conexión con el servidor');
         }
     }
 
@@ -183,7 +183,7 @@ $(function() {
         try {
             var r = await apiCrearResena(datos);
             if (r.exito) { mostrarAlerta('alerta', 'success', '¡Gracias por tu reseña!'); cargarResenas(); }
-            else mostrarAlerta('alerta', 'danger', r.mensaje || 'No se pudo publicar la reseña');
+            else mostrarErrorModal(r.mensaje || 'No se pudo publicar la reseña');
         } finally {
             botonCargando('btnPublicarResena', false);
         }

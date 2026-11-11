@@ -37,7 +37,7 @@ $(function() {
                 actualizarSelectPadre();
             }
         } catch (e) {
-            mostrarAlerta('alerta', 'error', 'Error al cargar categorías');
+            mostrarErrorModal('Error al cargar categorías');
         } finally {
             ocultarSpinner();
         }
@@ -72,6 +72,7 @@ $(function() {
 
     // === Modal crear ===
     function abrirModalCrear() {
+        limpiarErrores();
         $('#modalTitulo').text('Nueva Categoría');
         $('#modalCatId').val('');
         $('#catNombre').val('');
@@ -85,6 +86,7 @@ $(function() {
 
     // === Modal editar ===
     function abrirModalEditar(id) {
+        limpiarErrores();
         // Buscar la categoría en la lista
         var cat = buscarCategoria(id);
         if (!cat) return;
@@ -129,10 +131,17 @@ $(function() {
             esTradeIn: $('#catTradeIn').prop('checked')
         };
 
+        limpiarErrores();
         if (!datos.nombre) {
-            alert('El nombre es obligatorio');
+            marcarCampoError('catNombre', 'El nombre es obligatorio');
+            $('#catNombre').trigger('focus');
             return;
         }
+        var hayErr = false;
+        if (datos.nombre.length < 2 || datos.nombre.length > 80) { marcarCampoError('catNombre', 'El nombre debe tener entre 2 y 80 caracteres'); hayErr = true; }
+        if (datos.descripcion.length > 500) { marcarCampoError('catDescripcion', 'La descripción no puede exceder 500 caracteres'); hayErr = true; }
+        if (datos.icono.length > 20) { marcarCampoError('catIcono', 'El icono no puede exceder 20 caracteres'); hayErr = true; }
+        if (hayErr) { $('.input-error').first().trigger('focus'); return; }
 
         botonCargando('btnGuardarCat', true, 'Guardando...');
         try {
@@ -148,10 +157,10 @@ $(function() {
                 cerrarModal();
                 cargarArbol();
             } else {
-                mostrarAlerta('alerta', 'error', r.mensaje);
+                mostrarErrorModal(r.mensaje, 'No se pudo guardar la categoría');
             }
         } catch (e) {
-            mostrarAlerta('alerta', 'error', 'Error de conexión');
+            mostrarErrorModal('No se pudo conectar con el servidor. Verifica tu conexión e intenta de nuevo.', 'Error de conexión');
         } finally {
             botonCargando('btnGuardarCat', false);
         }
@@ -159,7 +168,7 @@ $(function() {
 
     // === Eliminar ===
     async function eliminarCat(id, nombre) {
-        if (!confirm('¿Eliminar la categoría "' + nombre + '"?')) return;
+        if (!(await confirmarModal('¿Eliminar la categoría "' + nombre + '"?'))) return;
 
         try {
             var r = await apiEliminarCategoria(id);
@@ -167,10 +176,10 @@ $(function() {
                 mostrarAlerta('alerta', 'success', '✅ ' + r.mensaje);
                 cargarArbol();
             } else {
-                mostrarAlerta('alerta', 'error', r.mensaje);
+                mostrarErrorModal(r.mensaje, 'No se pudo eliminar la categoría');
             }
         } catch (e) {
-            mostrarAlerta('alerta', 'error', 'Error de conexión');
+            mostrarErrorModal('No se pudo conectar con el servidor. Verifica tu conexión e intenta de nuevo.', 'Error de conexión');
         }
     }
 

@@ -50,10 +50,19 @@ $(function() {
             condicionDeclarada: $('#condicion').val(),
             precioEstimadoCliente: $('#precioEstimado').val() || null
         };
-        if (!datos.nombreEquipo || !datos.descripcion) {
-            mostrarAlerta('alerta', 'danger', 'Completa el equipo y la descripción');
-            return;
+        limpiarErrores();
+        var hayErrores = false;
+        function error(id, msg) {
+            marcarCampoError(id, msg);
+            if (!hayErrores) $('#' + id).trigger('focus');
+            hayErrores = true;
         }
+        if (!datos.nombreEquipo) error('nombreEquipo', 'El nombre del equipo es obligatorio');
+        else if (datos.nombreEquipo.length > 150) error('nombreEquipo', 'El nombre del equipo no puede exceder 150 caracteres');
+        if (!datos.descripcion) error('descripcion', 'La descripción es obligatoria');
+        else if (datos.descripcion.length > 2000) error('descripcion', 'La descripción no puede exceder 2000 caracteres');
+        if (datos.precioEstimadoCliente !== null && parseFloat(datos.precioEstimadoCliente) < 0) error('precioEstimado', 'El precio no puede ser negativo');
+        if (hayErrores) return;
         botonCargando('btnEnviarTradein', true, 'Enviando...');
         try {
             var r = await apiCrearTradeIn(datos);
@@ -64,7 +73,7 @@ $(function() {
                 $('#precioEstimado').val('');
                 cargar();
             } else {
-                mostrarAlerta('alerta', 'danger', r.mensaje);
+                mostrarErrorModal(r.mensaje);
             }
         } finally {
             botonCargando('btnEnviarTradein', false);

@@ -58,6 +58,7 @@ $(function() {
     }
 
     function abrirAjuste(id, nombre) {
+        limpiarErrores();
         $('#ajusteProdId').val(id);
         $('#ajusteTitulo').text('Ajustar: ' + nombre);
         $('#ajusteCantidad').val(0);
@@ -73,6 +74,18 @@ $(function() {
             cantidad: parseInt($('#ajusteCantidad').val()) || 0,
             motivo: $('#ajusteMotivo').val().trim()
         };
+        limpiarErrores();
+        var hayErrores = false;
+        function error(id, msg) {
+            marcarCampoError(id, msg);
+            if (!hayErrores) $('#' + id).trigger('focus');
+            hayErrores = true;
+        }
+        var cantTxt = $('#ajusteCantidad').val();
+        if (cantTxt === '' || isNaN(parseInt(cantTxt))) error('ajusteCantidad', 'Ingresa una cantidad válida');
+        else if (!/^\d+$/.test(cantTxt)) error('ajusteCantidad', 'La cantidad debe ser un número entero mayor o igual a 0');
+        if (datos.motivo.length > 300) error('ajusteMotivo', 'El motivo no puede exceder 300 caracteres');
+        if (hayErrores) return;
         botonCargando('btnGuardarAjuste', true, 'Guardando...');
         try {
             var r = await apiAjustarStock(datos);
@@ -80,7 +93,7 @@ $(function() {
                 mostrarAlerta('alerta', 'success', 'Stock actualizado: ' + r.datos.producto.nombre + ' → ' + r.datos.producto.stock);
                 cerrarModal(); cargarKpis(); cargarAlertas();
             } else {
-                mostrarAlerta('alerta', 'danger', r.mensaje);
+                mostrarErrorModal(r.mensaje);
             }
         } finally {
             botonCargando('btnGuardarAjuste', false);

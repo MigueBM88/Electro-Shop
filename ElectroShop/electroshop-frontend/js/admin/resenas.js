@@ -63,13 +63,13 @@ $(function() {
 
     async function moderar(id, estado) {
         var r = await apiModerarResena(id, estado);
-        if (r.exito) mostrarAlerta('alerta', 'success', r.mensaje); else mostrarAlerta('alerta', 'danger', r.mensaje);
+        if (r.exito) mostrarAlerta('alerta', 'success', r.mensaje); else mostrarErrorModal(r.mensaje);
         cargar();
     }
     async function eliminar(id) {
-        if (!confirm('¿Eliminar esta reseña permanentemente?')) return;
+        if (!(await confirmarModal('¿Eliminar esta reseña permanentemente?'))) return;
         var r = await apiEliminarResena(id);
-        if (r.exito) mostrarAlerta('alerta', 'success', 'Reseña eliminada'); else mostrarAlerta('alerta', 'danger', r.mensaje);
+        if (r.exito) mostrarAlerta('alerta', 'success', 'Reseña eliminada'); else mostrarErrorModal(r.mensaje);
         cargar();
     }
 

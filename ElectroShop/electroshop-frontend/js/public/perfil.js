@@ -28,7 +28,7 @@ $(function() {
                 $('#vFecha').text(formatFecha(u.fechaRegistro));
             }
         } catch (e) {
-            mostrarAlerta('alerta', 'error', 'Error al cargar el perfil');
+            mostrarErrorModal('Error al cargar el perfil');
         } finally {
             ocultarSpinner();
         }
@@ -49,6 +49,7 @@ $(function() {
 
     // Cancelar edición
     function cancelarEdicion() {
+        limpiarErrores();
         $('#vistaEditar').addClass('hidden');
         $('#vistaVer').removeClass('hidden');
         ocultarAlerta('alerta');
@@ -57,6 +58,25 @@ $(function() {
     // Guardar cambios
     $('#formEditar').on('submit', async function(e) {
         e.preventDefault();
+        limpiarErrores();
+        var hayErrores = false;
+        function error(id, msg) {
+            marcarCampoError(id, msg);
+            if (!hayErrores) $('#' + id).trigger('focus');
+            hayErrores = true;
+        }
+        var nombreVal = $('#eNombre').val().trim();
+        var telVal = $('#eTelefono').val().trim();
+        if (!nombreVal) error('eNombre', 'El nombre es obligatorio');
+        else if (nombreVal.length < 2) error('eNombre', 'El nombre debe tener al menos 2 caracteres');
+        else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/.test(nombreVal)) error('eNombre', 'El nombre solo puede contener letras y espacios');
+        else if (nombreVal.length > 100) error('eNombre', 'El nombre no puede exceder 100 caracteres');
+        if (telVal && !/^[0-9]{8}$/.test(telVal)) error('eTelefono', 'El teléfono debe tener exactamente 8 dígitos (sin espacios ni guiones)');
+        if (!$('#eProvincia').val().trim()) error('eProvincia', 'La provincia no puede estar vacía');
+        if (!$('#eCanton').val().trim()) error('eCanton', 'El cantón no puede estar vacío');
+        if (!$('#eDistrito').val().trim()) error('eDistrito', 'El distrito no puede estar vacío');
+        if ($('#eDetalle').val().trim().length > 500) error('eDetalle', 'El detalle no puede exceder 500 caracteres');
+        if (hayErrores) return;
         botonCargando('btnGuardar', true, 'Guardando...');
 
         var datos = {
@@ -81,10 +101,10 @@ $(function() {
                 usr.nombre = datos.nombre;
                 localStorage.setItem('es_user', JSON.stringify(usr));
             } else {
-                mostrarAlerta('alerta', 'error', r.mensaje);
+                mostrarErrorModal(r.mensaje);
             }
         } catch (e) {
-            mostrarAlerta('alerta', 'error', 'Error de conexión');
+            mostrarErrorModal('Error de conexión');
         } finally {
             botonCargando('btnGuardar', false);
         }

@@ -79,10 +79,10 @@ $(function() {
                     columnDefs: [{ targets: 6, orderable: false, searchable: false }]
                 });
             } else {
-                mostrarAlerta('alerta', 'error', r.mensaje);
+                mostrarErrorModal(r.mensaje);
             }
         } catch (e) {
-            mostrarAlerta('alerta', 'error', 'Error de conexión');
+            mostrarErrorModal('Error de conexión');
         } finally {
             ocultarSpinner();
         }
@@ -96,6 +96,7 @@ $(function() {
 
     // === Modal Crear ===
     function abrirModalCrear() {
+        limpiarErrores();
         $('#modalTitulo').text('Nuevo Producto');
         $('#modalProdId').val('');
         $('#prodNombre').val('');
@@ -114,10 +115,11 @@ $(function() {
 
     // === Modal Editar ===
     async function abrirModalEditar(id) {
+        limpiarErrores();
         try {
             var r = await apiProductoDetalle(id);
             if (!r.exito) {
-                mostrarAlerta('alerta', 'error', 'No se pudo cargar el producto');
+                mostrarErrorModal('No se pudo cargar el producto');
                 return;
             }
 
@@ -146,7 +148,7 @@ $(function() {
 
             $('#modalProducto').addClass('visible');
         } catch (e) {
-            mostrarAlerta('alerta', 'error', 'Error de conexión');
+            mostrarErrorModal('Error de conexión');
         }
     }
 
@@ -164,10 +166,27 @@ $(function() {
         var stock = $('#prodStock').val();
         var descripcion = $('#prodDescripcion').val().trim();
 
-        if (!nombre || !categoria || !precio || stock === '' || !descripcion) {
-            alert('Completa todos los campos obligatorios (*)');
-            return;
+        limpiarErrores();
+        var hayErrores = false;
+        function error(id, msg) {
+            marcarCampoError(id, msg);
+            if (!hayErrores) $('#' + id).trigger('focus');
+            hayErrores = true;
         }
+        if (!nombre) error('prodNombre', 'El nombre es obligatorio');
+        else if (nombre.length < 2 || nombre.length > 150) error('prodNombre', 'El nombre debe tener entre 2 y 150 caracteres');
+        if ($('#prodSku').val().trim().length > 50) error('prodSku', 'El SKU no puede exceder 50 caracteres');
+        if ($('#prodMarca').val().trim().length > 80) error('prodMarca', 'La marca no puede exceder 80 caracteres');
+        var precioOrigVal = $('#prodPrecioOriginal').val();
+        if (precioOrigVal && parseFloat(precioOrigVal) < 0) error('prodPrecioOriginal', 'El precio original no puede ser negativo');
+        if (!categoria) error('prodCategoria', 'Selecciona una categoría');
+        if (!precio) error('prodPrecio', 'El precio es obligatorio');
+        else if (parseFloat(precio) < 0) error('prodPrecio', 'El precio no puede ser negativo');
+        if (stock === '') error('prodStock', 'El stock es obligatorio');
+        else if (!/^\d+$/.test(stock)) error('prodStock', 'El stock debe ser un número entero mayor o igual a 0');
+        if (!descripcion) error('prodDescripcion', 'La descripción es obligatoria');
+        else if (descripcion.length > 2000) error('prodDescripcion', 'La descripción no puede exceder 2000 caracteres');
+        if (hayErrores) return;
 
         // Parsear especificaciones
         var specsTexto = $('#prodSpecs').val().trim();
@@ -214,10 +233,10 @@ $(function() {
                 cerrarModal();
                 cargarProductos();
             } else {
-                mostrarAlerta('alerta', 'error', r.mensaje);
+                mostrarErrorModal(r.mensaje, 'No se pudo guardar el producto');
             }
         } catch (e) {
-            mostrarAlerta('alerta', 'error', 'Error de conexión');
+            mostrarErrorModal('No se pudo conectar con el servidor. Verifica tu conexión e intenta de nuevo.', 'Error de conexión');
         } finally {
             botonCargando('btnGuardarProducto', false);
         }
@@ -225,7 +244,7 @@ $(function() {
 
     // === Eliminar producto ===
     async function eliminarProd(id, nombre) {
-        if (!confirm('¿Eliminar el producto "' + nombre + '"? Esta acción no se puede deshacer.')) return;
+        if (!(await confirmarModal('¿Eliminar el producto "' + nombre + '"? Esta acción no se puede deshacer.'))) return;
 
         try {
             var r = await apiEliminarProducto(id);
@@ -233,10 +252,10 @@ $(function() {
                 mostrarAlerta('alerta', 'success', '✅ ' + r.mensaje);
                 cargarProductos();
             } else {
-                mostrarAlerta('alerta', 'error', r.mensaje);
+                mostrarErrorModal(r.mensaje, 'No se pudo eliminar el producto');
             }
         } catch (e) {
-            mostrarAlerta('alerta', 'error', 'Error de conexión');
+            mostrarErrorModal('No se pudo conectar con el servidor. Verifica tu conexión e intenta de nuevo.', 'Error de conexión');
         }
     }
 

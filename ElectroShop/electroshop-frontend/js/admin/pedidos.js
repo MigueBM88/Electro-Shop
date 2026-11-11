@@ -61,7 +61,7 @@ $(function() {
     async function cambiarEstado(id, estado) {
         var r = await apiActualizarEstadoPedido(id, estado);
         if (r.exito) mostrarAlerta('alerta', 'success', 'Estado actualizado a "' + estado + '"');
-        else mostrarAlerta('alerta', 'danger', r.mensaje);
+        else mostrarErrorModal(r.mensaje);
         cargar();
     }
 

@@ -43,7 +43,7 @@ $(function() {
                 }).join(''));
             }
         } catch (e) {
-            mostrarAlerta('alerta', 'error', 'Error al cargar categorías. ¿Está corriendo el backend?');
+            mostrarErrorModal('Error al cargar categorías. ¿Está corriendo el backend?');
         } finally {
             ocultarSpinner();
         }
@@ -103,7 +103,7 @@ $(function() {
                 $('#paginacion').html(pagHTML);
             }
         } catch (e) {
-            mostrarAlerta('alerta', 'error', 'Error al cargar productos');
+            mostrarErrorModal('Error al cargar productos');
         } finally {
             ocultarSpinner();
         }

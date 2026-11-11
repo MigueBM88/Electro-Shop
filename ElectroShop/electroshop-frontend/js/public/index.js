@@ -12,10 +12,17 @@ $(function() {
         var contrasena = $('#contrasena').val();
         var $alerta = $('#alerta');
 
-        if (!correo || !contrasena) {
-            $alerta.text('Complete todos los campos').attr('class', 'alert alert-error visible');
-            return;
+        limpiarErrores();
+        var hayErrores = false;
+        function error(id, msg) {
+            marcarCampoError(id, msg);
+            if (!hayErrores) $('#' + id).trigger('focus');
+            hayErrores = true;
         }
+        if (!correo) error('correo', 'El correo es obligatorio');
+        else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) error('correo', 'Ingresa un correo válido');
+        if (!contrasena) error('contrasena', 'La contraseña es obligatoria');
+        if (hayErrores) return;
 
         botonCargando('btnLogin', true, 'Ingresando...');
 

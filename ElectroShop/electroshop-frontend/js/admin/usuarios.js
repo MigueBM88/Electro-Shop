@@ -20,7 +20,7 @@ $(function() {
         mostrarSpinner();
         try {
             var r = await apiListarUsuarios(params);
-            if (!r.exito) return mostrarAlerta('alerta', 'error', r.mensaje);
+            if (!r.exito) return mostrarErrorModal(r.mensaje);
 
             var filas = r.datos.usuarios.map(function(u) {
                 var id = u._id || u.id;
@@ -53,7 +53,7 @@ $(function() {
                 });
             }
         } catch (e) {
-            mostrarAlerta('alerta', 'error', 'Error de conexión');
+            mostrarErrorModal('Error de conexión');
         } finally {
             ocultarSpinner();
         }
@@ -84,12 +84,12 @@ $(function() {
             if (r.exito) {
                 mostrarAlerta('alerta', 'success', '✅ ' + r.mensaje);
             } else {
-                mostrarAlerta('alerta', 'error', r.mensaje);
+                mostrarErrorModal(r.mensaje);
             }
             cerrarModal();
             cargarUsuarios();
         } catch (e) {
-            mostrarAlerta('alerta', 'error', 'Error de conexión');
+            mostrarErrorModal('Error de conexión');
         } finally {
             botonCargando('btnGuardarRol', false);
         }
@@ -98,18 +98,18 @@ $(function() {
     // === Activar / Desactivar ===
     async function toggleEstado(id, activar) {
         var msg = activar ? '¿Reactivar este usuario?' : '¿Desactivar este usuario? Se le notificará por correo.';
-        if (!confirm(msg)) return;
+        if (!(await confirmarModal(msg))) return;
 
         try {
             var r = activar ? await apiReactivarUsuario(id) : await apiDesactivarUsuario(id);
             if (r.exito) {
                 mostrarAlerta('alerta', 'success', '✅ ' + r.mensaje);
             } else {
-                mostrarAlerta('alerta', 'error', r.mensaje);
+                mostrarErrorModal(r.mensaje);
             }
             cargarUsuarios();
         } catch (e) {
-            mostrarAlerta('alerta', 'error', 'Error de conexión');
+            mostrarErrorModal('Error de conexión');
         }
     }
 

@@ -114,10 +114,10 @@ $(function() {
                 redirigiendo = true;
                 window.location.href = 'pedido.html?id=' + r.datos.pedido._id + '&nuevo=1';
             } else {
-                mostrarAlerta('alerta', 'danger', r.mensaje || 'No se pudo procesar el pago');
+                mostrarErrorModal(r.mensaje || 'No se pudo procesar el pago');
             }
         } catch (e) {
-            mostrarAlerta('alerta', 'danger', 'Error de conexión con el servidor');
+            mostrarErrorModal('Error de conexión con el servidor');
         } finally {
             if (!redirigiendo) botonCargando('btnPagar', false);
         }
