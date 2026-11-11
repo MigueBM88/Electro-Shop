@@ -9,35 +9,45 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 </head>
 
-<body>
+<body class="auth-page">
 
-    <div class="auth-container">
-        <div class="card">
-            <div class="card-header">
-                <div class="icon"><svg class="logo-chip" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="14" height="14" rx="2.5"/><path d="M13 4v5M19 4v5M13 23v5M19 23v5M4 13h5M4 19h5M23 13h5M23 19h5"/></svg></div>
-                <h2>ElectroShop</h2>
+    <main class="auth-shell">
+        <aside class="auth-brand" aria-hidden="true">
+            <div class="auth-brand-logo"><svg class="logo-chip" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="14" height="14" rx="2.5"/><path d="M13 4v5M19 4v5M13 23v5M19 23v5M4 13h5M4 19h5M23 13h5M23 19h5"/></svg> Electro<span>Shop</span></div>
+            <h2>Todo para tus proyectos de electrónica</h2>
+            <p>Compra componentes, sigue tus pedidos y gestiona tus Trade-In desde un solo lugar.</p>
+            <ul class="auth-beneficios">
+                <li>🔌 Componentes y módulos electrónicos</li>
+                <li>♻️ Trade-In: entrega tu equipo y obtén crédito</li>
+                <li>🚚 Envíos a todo Costa Rica</li>
+            </ul>
+        </aside>
+        <section class="auth-form">
+            <div class="auth-form-header">
+                <div class="auth-icon"><svg class="logo-chip" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="14" height="14" rx="2.5"/><path d="M13 4v5M19 4v5M13 23v5M19 23v5M4 13h5M4 19h5M23 13h5M23 19h5"/></svg></div>
+                <h1>Bienvenido de nuevo</h1>
                 <p>Inicia sesión en tu cuenta</p>
             </div>
 
-            <div id="alerta" class="alert"></div>
+            <div id="alerta" class="alert" role="alert"></div>
 
-            <form id="formLogin">
-                <div class="form-group">
+            <form id="formLogin" novalidate>
+                <div class="auth-field">
+                    <input type="email" id="correo" autocomplete="email" placeholder=" " required>
                     <label for="correo">Correo electrónico</label>
-                    <input type="email" id="correo" placeholder="tu@correo.com" required>
                 </div>
-                <div class="form-group">
+                <div class="auth-field auth-field-pass">
+                    <input type="password" id="contrasena" autocomplete="current-password" placeholder=" " required>
                     <label for="contrasena">Contraseña</label>
-                    <input type="password" id="contrasena" placeholder="••••••••" required>
+                    <button type="button" class="auth-ver-pass" data-target="contrasena" aria-label="Mostrar contraseña">👁️</button>
                 </div>
-                <button type="submit" class="btn btn-primary" id="btnLogin">Iniciar Sesión</button>
+                <button type="submit" class="btn btn-primary auth-btn" id="btnLogin">Iniciar Sesión</button>
             </form>
 
-            <p class="text-center text-muted mt-1">
-                ¿No tienes cuenta? <a href="registro.html" class="text-link">Regístrate aquí</a>
-            </p>
-        </div>
-    </div>
+            <p class="auth-switch">¿No tienes cuenta? <a href="registro.html" class="text-link">Regístrate aquí</a></p>
+            <p class="auth-copy">&copy; 2026 ElectroShop</p>
+        </section>
+    </main>
 
     <!-- jQuery (debe cargar antes de api.js, utils.js y scripts de página) -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>

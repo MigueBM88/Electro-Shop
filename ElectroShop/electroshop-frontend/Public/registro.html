@@ -9,47 +9,58 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 </head>
 
-<body>
+<body class="auth-page">
 
-    <div class="auth-container">
-        <div class="card">
-            <div class="card-header">
-                <div class="icon"><svg class="logo-chip" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="14" height="14" rx="2.5"/><path d="M13 4v5M19 4v5M13 23v5M19 23v5M4 13h5M4 19h5M23 13h5M23 19h5"/></svg></div>
-                <h2>Crear Cuenta</h2>
-                <p>Únete a ElectroShop</p>
+    <main class="auth-shell">
+        <aside class="auth-brand" aria-hidden="true">
+            <div class="auth-brand-logo"><svg class="logo-chip" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="14" height="14" rx="2.5"/><path d="M13 4v5M19 4v5M13 23v5M19 23v5M4 13h5M4 19h5M23 13h5M23 19h5"/></svg> Electro<span>Shop</span></div>
+            <h2>Empieza a construir hoy</h2>
+            <p>Crea tu cuenta para comprar, guardar tu carrito y recibir ofertas por tus equipos usados.</p>
+            <ul class="auth-beneficios">
+                <li>🔌 Componentes y módulos electrónicos</li>
+                <li>♻️ Trade-In: entrega tu equipo y obtén crédito</li>
+                <li>🚚 Envíos a todo Costa Rica</li>
+            </ul>
+        </aside>
+        <section class="auth-form">
+            <div class="auth-form-header">
+                <div class="auth-icon"><svg class="logo-chip" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="14" height="14" rx="2.5"/><path d="M13 4v5M19 4v5M13 23v5M19 23v5M4 13h5M4 19h5M23 13h5M23 19h5"/></svg></div>
+                <h1>Crear cuenta</h1>
+                <p>Únete a ElectroShop en menos de un minuto</p>
             </div>
 
-            <div id="alerta" class="alert"></div>
+            <div id="alerta" class="alert" role="alert"></div>
 
             <form id="formRegistro">
-                <div class="form-group">
+                <div class="auth-field">
+                    <input type="text" id="nombre" name="nombre" autocomplete="name" placeholder=" " required>
                     <label for="nombre">Nombre completo</label>
-                    <input type="text" id="nombre" name="nombre" placeholder="Ej: Miguel Bravo" required>
                     <div class="error-text" id="err-nombre"></div>
                 </div>
-                <div class="form-group">
+                <div class="auth-field">
+                    <input type="email" id="correo" name="correo" autocomplete="email" placeholder=" " required>
                     <label for="correo">Correo electrónico</label>
-                    <input type="email" id="correo" name="correo" placeholder="tu@correo.com" required>
                     <div class="error-text" id="err-correo"></div>
                 </div>
-                <div class="form-group">
-                    <label for="contrasena">Contraseña</label>
-                    <input type="password" id="contrasena" name="contrasena" placeholder="Mínimo 8 caracteres" required>
+                <div class="auth-field auth-field-pass">
+                    <input type="password" id="contrasena" name="contrasena" autocomplete="new-password" placeholder=" " required>
+                    <label for="contrasena">Contraseña (mín. 8 caracteres)</label>
+                    <button type="button" class="auth-ver-pass" data-target="contrasena" aria-label="Mostrar contraseña">👁️</button>
                     <div class="error-text" id="err-contrasena"></div>
                 </div>
-                <div class="form-group">
+                <div class="auth-field auth-field-pass">
+                    <input type="password" id="confirmarContrasena" name="confirmarContrasena" autocomplete="new-password" placeholder=" " required>
                     <label for="confirmarContrasena">Confirmar contraseña</label>
-                    <input type="password" id="confirmarContrasena" name="confirmarContrasena" placeholder="Repite tu contraseña" required>
+                    <button type="button" class="auth-ver-pass" data-target="confirmarContrasena" aria-label="Mostrar contraseña">👁️</button>
                     <div class="error-text" id="err-confirmarContrasena"></div>
                 </div>
-                <button type="submit" class="btn btn-primary" id="btnReg">Registrarse</button>
+                <button type="submit" class="btn btn-primary auth-btn" id="btnReg">Registrarse</button>
             </form>
 
-            <p class="text-center text-muted mt-1">
-                ¿Ya tienes cuenta? <a href="index.html" class="text-link">Inicia sesión</a>
-            </p>
-        </div>
-    </div>
+            <p class="auth-switch">¿Ya tienes cuenta? <a href="index.html" class="text-link">Inicia sesión</a></p>
+            <p class="auth-copy">&copy; 2026 ElectroShop</p>
+        </section>
+    </main>
 
     <!-- jQuery + jQuery Validation -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>

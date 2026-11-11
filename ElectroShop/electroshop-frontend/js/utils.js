@@ -426,3 +426,12 @@ function confirmarModal(mensaje, titulo, textoAceptar) {
         $caja.find('.es-confirm-no').trigger('focus');
     });
 }
+
+
+// Mostrar / ocultar contraseña (login y registro)
+$(document).on('click', '.auth-ver-pass', function() {
+    var $input = $('#' + $(this).data('target'));
+    var visible = $input.attr('type') === 'text';
+    $input.attr('type', visible ? 'password' : 'text');
+    $(this).text(visible ? '👁️' : '🙈').attr('aria-label', visible ? 'Mostrar contraseña' : 'Ocultar contraseña');
+});
