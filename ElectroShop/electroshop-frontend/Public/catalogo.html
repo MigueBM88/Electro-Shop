@@ -20,9 +20,37 @@
         </div>
         <!-- ====== VISTA: CATEGORÍAS PRINCIPALES ====== -->
         <div id="vistaCategorias">
-            <h2 style="margin-bottom:0.5rem">🛍️ Catálogo de Componentes Electrónicos</h2>
-            <p class="text-muted mb-1">Selecciona una categoría para explorar los productos</p>
-            <div id="gridCategorias" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;">
+            <!-- Hero (inspirado en la plantilla "heroes") -->
+            <section class="es-hero">
+                <div class="es-hero-texto">
+                    <span class="es-hero-tag">⚡ Nuevos y reacondicionados</span>
+                    <h1>Componentes para tus proyectos de electrónica</h1>
+                    <p>Arduino, sensores, módulos y más. Envíos a todo Costa Rica y crédito por tus equipos usados con Trade-In.</p>
+                    <form class="es-hero-busqueda" action="buscar.html" method="get" role="search">
+                        <label for="heroBusqueda" class="visually-hidden">Buscar productos</label>
+                        <input type="search" id="heroBusqueda" name="q" placeholder="Busca un componente, marca o SKU...">
+                        <button type="submit" class="btn btn-primary">Buscar</button>
+                    </form>
+                </div>
+                <div class="es-hero-visual" aria-hidden="true">🔌</div>
+            </section>
+
+            <!-- Destacados (inspirado en la plantilla "carousel") -->
+            <section id="zonaDestacados" class="es-destacados hidden" aria-label="Productos destacados">
+                <div class="es-seccion-head">
+                    <h2>⭐ Productos destacados</h2>
+                    <div class="es-carousel-ctrl">
+                        <button type="button" class="es-carousel-btn" data-carousel="prev" aria-label="Anterior">‹</button>
+                        <button type="button" class="es-carousel-btn" data-carousel="next" aria-label="Siguiente">›</button>
+                    </div>
+                </div>
+                <div id="carouselDestacados" class="es-carousel" tabindex="0"></div>
+            </section>
+
+            <div class="es-seccion-head">
+                <h2>🛍️ Explora por categoría</h2>
+            </div>
+            <div id="gridCategorias" class="es-grid-categorias">
                 <p class="text-muted">Cargando categorías...</p>
             </div>
         </div>
@@ -33,10 +61,10 @@
             <h2 id="tituloCategoria" style="margin-bottom:0.5rem"></h2>
 
             <!-- Subcategorías -->
-            <div id="gridSubcats" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1rem;margin-bottom:1.5rem;"></div>
+            <div id="gridSubcats" class="es-grid-subcats"></div>
 
             <!-- Productos -->
-            <div id="gridProductos" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1.5rem;"></div>
+            <div id="gridProductos" class="es-grid-productos"></div>
             <div id="paginacion" class="text-center text-muted mt-1"></div>
         </div>
     </div>

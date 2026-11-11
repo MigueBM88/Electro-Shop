@@ -12,14 +12,16 @@
 <body>
 
     <div class="container">
-        <h2 style="margin-bottom:0.25rem">♻️ Trade-In de equipos</h2>
-        <p class="text-muted mb-1">Ofrece tu equipo usado y recibe crédito para tus compras</p>
+        <header class="es-page-head">
+            <h1>♻️ Trade-In de equipos</h1>
+            <p>Ofrece tu equipo usado y recibe crédito para tus compras</p>
+        </header>
         <div id="alerta" class="alert"></div>
 
-        <div style="display:grid;grid-template-columns:400px 1fr;gap:1.5rem;align-items:start">
+        <div class="es-tradein-grid">
             <!-- Formulario de solicitud -->
-            <div class="card">
-                <h3 style="margin-bottom:0.75rem">Nueva solicitud</h3>
+            <div class="card es-tradein-form">
+                <h3 style="margin-bottom:0.75rem">♻️ Nueva solicitud</h3>
                 <div class="form-group"><label>Equipo *</label><input type="text" id="nombreEquipo" placeholder="Osciloscopio Hantek DSO5102P"></div>
                 <div class="form-group"><label>Descripción del estado *</label><textarea id="descripcion" rows="3" placeholder="Funciona perfecto, incluye puntas y caja original..."></textarea></div>
                 <div class="form-group"><label>Condición</label>

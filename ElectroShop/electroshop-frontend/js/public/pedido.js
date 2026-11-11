@@ -38,14 +38,14 @@ $(function() {
             var puedeCancelar = ['pendiente', 'pagado', 'preparando'].indexOf(p.estado) !== -1;
 
             $cont.html(
-                '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem">' +
+                '<div class="es-pedido-head">' +
                   '<h2 style="margin:0">Pedido ' + esc(p.numero) + '</h2>' + estadoPedidoBadge(p.estado) +
                 '</div>' +
                 '<p class="text-muted" style="font-size:0.8rem">Realizado el ' + formatFecha(p.createdAt) + '</p>' +
 
                 '<div class="card">' + timelinePedido(p.estado) + '</div>' +
 
-                '<div style="display:grid;grid-template-columns:1fr 340px;gap:1.5rem;align-items:start;margin-top:1rem">' +
+                '<div class="es-pedido-grid">' +
                   '<div class="card"><h3 style="margin-bottom:0.75rem">Productos</h3>' +
                     '<div class="table-container"><table>' +
                     '<thead><tr><th>Producto</th><th>Precio</th><th>Cant.</th><th>Subtotal</th></tr></thead>' +

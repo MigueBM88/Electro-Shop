@@ -5,6 +5,8 @@ $(function() {
     construirFooterES();
     if (!requiereAuth()) return;
     renderNavbar('buscar');
+    var qInicial = new URLSearchParams(window.location.search).get('q');
+    if (qInicial) $('#fBusqueda').val(qInicial);
 
     // === Cargar opciones de filtros (categorías y marcas) ===
     async function cargarFiltros() {

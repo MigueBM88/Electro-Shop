@@ -43,6 +43,31 @@ ElectroShop/
 - **Panel vendedor:** gestión de sus productos y ventas.
 - **Notificaciones por correo** con Nodemailer.
 
+## 🎨 Interfaz y experiencia de usuario
+
+Diseño propio inspirado en los ejemplos oficiales de Bootstrap 5, hecho con CSS propio (sin cargar Bootstrap).
+
+- **Login y registro** (estilo *sign-in*): panel de marca a dos columnas, etiquetas flotantes y botón para mostrar u ocultar la contraseña.
+- **Página de inicio** (estilo *heroes* / *carousel*): banner con buscador y carrusel de productos destacados.
+- **Catálogo y producto** (estilo *album* / *product*): tarjetas uniformes con etiqueta de descuento, galería fija y tabla de especificaciones.
+- **Checkout** (estilo *checkout*): barra de progreso, pasos numerados y resumen del pedido fijo a la derecha.
+- **Paneles admin y vendedor** (estilo *dashboard* / *sidebars*): barra lateral agrupada por secciones, barra superior con avatar y menú ☰ en móvil.
+- **Footer** (estilo *footers*): cuatro columnas con enlaces de tienda, cuenta y ayuda.
+- **Carrito, pedidos, perfil, Trade-In y búsqueda:** encabezados uniformes, resúmenes laterales, estados vacíos y colores por estado.
+- **Diseño responsive:** las columnas pasan a una sola en pantallas pequeñas.
+
+### Manejo de errores y validación
+
+- **Modal de error reutilizable** (`mostrarErrorModal`) para errores del servidor y de conexión, en lugar de `alert()`.
+- **Modal de confirmación** (`confirmarModal`, devuelve una Promise) en lugar de `confirm()`.
+- **Validación en línea:** cada campo muestra su error debajo, con borde rojo y foco en el primer campo inválido (`marcarCampoError`, `limpiarErrores`).
+- Las reglas del frontend coinciden con las de `validators/` y `models/` del backend (longitudes, enteros, teléfono de 8 dígitos, etc.).
+
+### Accesibilidad
+
+- **Modo oscuro** con contraste revisado (mínimo 4.5:1, según WCAG AA) en alertas, enlaces, etiquetas y botones.
+- Atributos ARIA en modales, menús y campos con error, navegación con teclado (Tab, Enter y Esc) y respeto de `prefers-reduced-motion`.
+
 ## 🛠️ Requisitos
 
 - [Node.js](https://nodejs.org/) 18 o superior
@@ -158,7 +183,7 @@ Las URLs antiguas con `/public/...` se redirigen automáticamente a la nueva rut
 ## 🧰 Tecnologías
 
 **Backend:** Express, Mongoose, JSON Web Token, bcryptjs, express-validator, Nodemailer, dotenv, CORS, nodemon
-**Frontend:** HTML5, CSS3, JavaScript, Express (servidor estático)
+**Frontend:** HTML5, CSS3, JavaScript, jQuery 3.7, jQuery Validation, DataTables, Express (servidor estático)
 
 ---
 ---
@@ -203,6 +228,31 @@ ElectroShop/
 - **Admin panel:** users, categories, products, orders, inventory, reviews, reports, and trade‑in.
 - **Seller panel:** manage their own products and sales.
 - **Email notifications** with Nodemailer.
+
+## 🎨 UI and user experience
+
+Custom design inspired by the official Bootstrap 5 examples, built with the project's own CSS (Bootstrap is not loaded).
+
+- **Login and sign-up** (*sign-in* style): two-column brand panel, floating labels, and a show/hide password button.
+- **Home page** (*heroes* / *carousel* style): banner with a search box and a featured products carousel.
+- **Catalog and product** (*album* / *product* style): consistent cards with discount badges, a sticky image, and a specs table.
+- **Checkout** (*checkout* style): progress bar, numbered steps, and a sticky order summary on the right.
+- **Admin and seller panels** (*dashboard* / *sidebars* style): sidebar grouped by section, top bar with avatar, and a ☰ menu on mobile.
+- **Footer** (*footers* style): four columns with store, account, and help links.
+- **Cart, orders, profile, Trade-In, and search:** consistent page headers, side summaries, empty states, and status colors.
+- **Responsive layout:** columns collapse into one on small screens.
+
+### Error handling and validation
+
+- **Reusable error modal** (`mostrarErrorModal`) for server and connection errors instead of `alert()`.
+- **Confirmation modal** (`confirmarModal`, returns a Promise) instead of `confirm()`.
+- **Inline validation:** each field shows its error below it, with a red border and focus on the first invalid field (`marcarCampoError`, `limpiarErrores`).
+- Frontend rules match the backend `validators/` and `models/` (lengths, integers, 8-digit phone, etc.).
+
+### Accessibility
+
+- **Dark mode** with reviewed contrast (at least 4.5:1, per WCAG AA) for alerts, links, badges, and buttons.
+- ARIA attributes on modals, menus, and invalid fields, keyboard navigation (Tab, Enter, and Esc), and support for `prefers-reduced-motion`.
 
 ## 🛠️ Requirements
 
@@ -286,4 +336,4 @@ Old `/public/...` URLs are redirected to the new paths automatically.
 ## 🧰 Tech stack
 
 **Backend:** Express, Mongoose, JSON Web Token, bcryptjs, express-validator, Nodemailer, dotenv, CORS, nodemon
-**Frontend:** HTML5, CSS3, JavaScript, Express (static server)
+**Frontend:** HTML5, CSS3, JavaScript, jQuery 3.7, jQuery Validation, DataTables, Express (static server)

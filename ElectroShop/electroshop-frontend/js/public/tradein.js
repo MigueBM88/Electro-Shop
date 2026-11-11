@@ -29,7 +29,7 @@ $(function() {
             $cont.html(ss.map(function(s) {
                 var oferta = s.ofertaAdmin != null ? '<div style="margin-top:0.4rem"><strong>Oferta de ElectroShop:</strong> ' + formatPrecio(s.ofertaAdmin) + '</div>' : '';
                 var nota = s.notaAdmin ? '<div class="text-muted" style="font-size:0.8rem;margin-top:0.3rem">Nota: ' + esc(s.notaAdmin) + '</div>' : '';
-                return '<div class="card" style="margin-bottom:0.75rem">' +
+                return '<div class="card es-tradein-item es-ti-' + esc(s.estado) + '">' +
                     '<div style="display:flex;justify-content:space-between;align-items:center">' +
                     '<strong>' + esc(s.nombreEquipo) + '</strong>' + tiBadge(s.estado) + '</div>' +
                     '<div class="text-muted" style="font-size:0.82rem;margin-top:0.3rem">' + esc(s.descripcion) + '</div>' +

@@ -17,8 +17,8 @@ $(function() {
 
             var pedidos = r.datos.pedidos;
             if (pedidos.length === 0) {
-                $cont.html('<div class="card text-center" style="padding:2rem">' +
-                    '<p style="font-size:3rem;margin:0">📦</p>' +
+                $cont.html('<div class="card es-vacio">' +
+                    '<p class="es-vacio-icono" aria-hidden="true">📦</p>' +
                     '<p class="text-muted">Aún no has realizado pedidos.</p>' +
                     '<a href="catalogo.html" class="btn btn-primary btn-sm" style="width:auto;margin:0 auto">Ir al catálogo</a>' +
                     '</div>');

@@ -70,61 +70,118 @@ function renderNavbar(paginaActiva) {
         links, paginaActiva, usuario);
 }
 
+// === Barra lateral reutilizable (admin y vendedor, estilo "dashboard") ===
+function construirSidebarES(cfg, paginaActiva, usuario) {
+    var $side = $('<aside>', { id: 'adminSidebar', 'class': 'admin-sidebar', 'aria-label': cfg.aria });
+    $side.append('<a href="' + cfg.inicio + '" class="admin-brand">' + logoChipSVG() + ' Electro<span>Shop</span> <small class="' + cfg.tagClase + '">' + cfg.tag + '</small></a>');
+    var $nav = $('<nav>', { 'class': 'admin-nav' });
+    $.each(cfg.secciones, function(_, s) {
+        $('<p>', { 'class': 'admin-nav-titulo' }).text(s.titulo).appendTo($nav);
+        $.each(s.links, function(_, l) {
+            var $a = $('<a>', { href: l.href, 'class': 'admin-nav-link' + (paginaActiva === l.id ? ' active' : '') });
+            if (paginaActiva === l.id) $a.attr('aria-current', 'page');
+            $a.append($('<span>', { 'class': 'admin-nav-icono', 'aria-hidden': 'true' }).text(l.icono))
+              .append($('<span>').text(l.texto)).appendTo($nav);
+        });
+    });
+    $side.append($nav);
+    $side.append($('<a>', { href: '/catalogo.html', 'class': 'admin-nav-link admin-nav-tienda' })
+        .append($('<span>', { 'class': 'admin-nav-icono', 'aria-hidden': 'true' }).text('🛍️'))
+        .append($('<span>').text('Ir a la tienda')));
+
+    var inicial = (usuario.nombre || '?').trim().charAt(0).toUpperCase();
+    var $top = $('<header>', { 'class': 'admin-topbar' })
+        .append($('<button>', { type: 'button', 'class': 'admin-menu-btn', 'aria-label': 'Abrir menú', 'aria-controls': 'adminSidebar', 'aria-expanded': 'false' }).text('☰'))
+        .append($('<div>', { 'class': 'admin-topbar-espacio' }))
+        .append($('<div>', { 'class': 'admin-user' })
+            .append($('<span>', { 'class': 'admin-avatar', 'aria-hidden': 'true' }).text(inicial))
+            .append($('<span>', { 'class': 'user-name' }).text(usuario.nombre))
+            .append($('<button>', { type: 'button', 'class': 'btn-logout', 'data-action': 'cerrar-sesion' }).text('Salir')));
+
+    var $main = $('<div>', { 'class': 'admin-main' }).append($top);
+    $('body').children('.container').appendTo($main);
+    $('body').addClass('admin-layout')
+        .prepend($('<div>', { 'class': 'admin-overlay' }))
+        .prepend($main)
+        .prepend($side);
+}
+
 // === Navbar ADMIN ===
 function renderNavbarAdmin(paginaActiva) {
     var usuario = getUsuario();
     if (!usuario) return;
-
-    var links = [
-        { href: 'usuarios.html', texto: '👥 Usuarios', id: 'usuarios' },
-        { href: 'categorias.html', texto: '📂 Categorías', id: 'categorias' },
-        { href: 'productos.html', texto: '📦 Productos', id: 'productos' },
-        { href: 'pedidos.html', texto: '🧾 Pedidos', id: 'pedidos' },
-        { href: 'inventario.html', texto: '📊 Inventario', id: 'inventario' },
-        { href: 'resenas.html', texto: '⭐ Reseñas', id: 'resenas' },
-        { href: 'reportes.html', texto: '📈 Reportes', id: 'reportes' },
-        { href: 'tradein.html', texto: '♻️ Trade-In', id: 'tradein' },
-        { href: '/catalogo.html', texto: '← Tienda', id: 'tienda' }
-    ];
-
-    construirNavbarES(
-        '<a href="usuarios.html" class="navbar-brand">' + logoChipSVG() + ' Electro<span>Shop</span> <small style="font-size:0.7rem;color:var(--warning);">ADMIN</small></a>',
-        links, paginaActiva, usuario);
+    construirSidebarES({
+        aria: 'Menú de administración', inicio: 'usuarios.html', tag: 'ADMIN', tagClase: 'tag-admin',
+        secciones: [
+            { titulo: 'Catálogo', links: [
+                { href: 'productos.html', texto: 'Productos', icono: '📦', id: 'productos' },
+                { href: 'categorias.html', texto: 'Categorías', icono: '📂', id: 'categorias' },
+                { href: 'inventario.html', texto: 'Inventario', icono: '📊', id: 'inventario' }
+            ]},
+            { titulo: 'Ventas', links: [
+                { href: 'pedidos.html', texto: 'Pedidos', icono: '🧾', id: 'pedidos' },
+                { href: 'tradein.html', texto: 'Trade-In', icono: '♻️', id: 'tradein' },
+                { href: 'reportes.html', texto: 'Reportes', icono: '📈', id: 'reportes' }
+            ]},
+            { titulo: 'Comunidad', links: [
+                { href: 'usuarios.html', texto: 'Usuarios', icono: '👥', id: 'usuarios' },
+                { href: 'resenas.html', texto: 'Reseñas', icono: '⭐', id: 'resenas' }
+            ]}
+        ]
+    }, paginaActiva, usuario);
 }
 
-// === Navbar VENDEDOR EXTERNO ===
+// Abrir / cerrar la barra lateral en pantallas pequeñas
+function toggleSidebarAdmin(abrir) {
+    $('body').toggleClass('sidebar-abierta', abrir);
+    $('.admin-menu-btn').attr('aria-expanded', abrir ? 'true' : 'false');
+}
+$(document).on('click', '.admin-menu-btn', function() { toggleSidebarAdmin(!$('body').hasClass('sidebar-abierta')); });
+$(document).on('click', '.admin-overlay', function() { toggleSidebarAdmin(false); });
+$(document).on('keydown', function(e) { if (e.key === 'Escape' && $('body').hasClass('sidebar-abierta')) toggleSidebarAdmin(false); });
+
+// === Navbar VENDEDOR EXTERNO (misma barra lateral) ===
 function renderNavbarVendedor(paginaActiva) {
     var usuario = getUsuario();
     if (!usuario) return;
-
-    var links = [
-        { href: 'productos.html', texto: '📦 Mis Productos', id: 'productos' },
-        { href: 'ventas.html', texto: '💰 Mis Ventas', id: 'ventas' },
-        { href: '/catalogo.html', texto: '← Tienda', id: 'tienda' }
-    ];
-
-    construirNavbarES(
-        '<a href="productos.html" class="navbar-brand">' + logoChipSVG() + ' Electro<span>Shop</span> <small style="font-size:0.7rem;color:var(--success);">VENDEDOR</small></a>',
-        links, paginaActiva, usuario);
+    construirSidebarES({
+        aria: 'Menú del vendedor', inicio: 'productos.html', tag: 'VENDEDOR', tagClase: 'tag-vendedor',
+        secciones: [
+            { titulo: 'Mi tienda', links: [
+                { href: 'productos.html', texto: 'Mis productos', icono: '📦', id: 'productos' },
+                { href: 'ventas.html', texto: 'Mis ventas', icono: '💰', id: 'ventas' }
+            ]}
+        ]
+    }, paginaActiva, usuario);
 }
 
 // === Footer publico (solo paginas de cliente; se llama desde js/public/*.js) ===
 // Se arma con jQuery; los textos van con .text(). No duplica si ya existe.
 function construirFooterES() {
     if ($('.footer-es').length) return;
-
+    var año = new Date().getFullYear();
+    var cols = [
+        { titulo: 'Tienda', links: [['/catalogo.html', 'Catálogo'], ['/buscar.html', 'Buscar productos'], ['/carrito.html', 'Mi carrito']] },
+        { titulo: 'Mi cuenta', links: [['/perfil.html', 'Perfil'], ['/pedidos.html', 'Mis pedidos'], ['/tradein.html', 'Trade-In']] },
+        { titulo: 'Ayuda', links: [['/tradein.html', '¿Cómo funciona el Trade-In?'], ['/pedidos.html', 'Seguimiento de pedidos']] }
+    ];
     var $footer = $('<footer>', { 'class': 'footer-es' });
-    $('<div>', { 'class': 'footer-es-brand' })
-        .append(logoChipSVG(), ' Electro', $('<span>').text('Shop'))
+    var $grid = $('<div>', { 'class': 'footer-es-grid' });
+    $('<div>', { 'class': 'footer-es-col footer-es-about' })
+        .append($('<div>', { 'class': 'footer-es-brand' }).append(logoChipSVG(), ' Electro', $('<span>').text('Shop')))
+        .append($('<p>', { 'class': 'footer-es-texto' }).text('Tu tienda en línea de componentes electrónicos, nuevos y reacondicionados.'))
+        .append($('<p>', { 'class': 'footer-es-texto' }).text('📍 San José, Costa Rica'))
+        .appendTo($grid);
+    $.each(cols, function(_, c) {
+        var $ul = $('<ul>');
+        $.each(c.links, function(_, l) { $('<li>').append($('<a>', { href: l[0] }).text(l[1])).appendTo($ul); });
+        $('<nav>', { 'class': 'footer-es-col', 'aria-label': c.titulo }).append($('<h4>').text(c.titulo)).append($ul).appendTo($grid);
+    });
+    $footer.append($grid);
+    $('<div>', { 'class': 'footer-es-bottom' })
+        .append($('<p>', { 'class': 'footer-es-copy' }).text('© ' + año + ' ElectroShop. Todos los derechos reservados.'))
+        .append($('<p>', { 'class': 'footer-es-copy' }).text('Proyecto académico · Universidad CENFOTEC'))
         .appendTo($footer);
-    $('<p>', { 'class': 'footer-es-texto' })
-        .text('Tu tienda en línea de componentes electrónicos, nuevos y reacondicionados.')
-        .appendTo($footer);
-    $('<p>', { 'class': 'footer-es-copy' })
-        .text('© ' + new Date().getFullYear() + ' ElectroShop. Todos los derechos reservados.')
-        .appendTo($footer);
-
-    // La clase en body activa el layout que deja el footer abajo en paginas cortas
     $('body').addClass('con-footer-es').append($footer);
 }
 
@@ -282,25 +339,31 @@ function condicionBadge(condicion) {
 // Click y hover se manejan con handlers delegados ([data-href] / [data-hover]).
 function renderProductCard(p) {
     var img = (p.imagenes && p.imagenes.length > 0) ?
-        '<img src="' + escaparHtml(p.imagenes[0].url) + '" style="width:100%;height:180px;object-fit:cover;">' :
-        '<div style="width:100%;height:180px;background:var(--gray-100);display:flex;align-items:center;justify-content:center;font-size:3rem;color:var(--gray-300);">📦</div>';
+        '<img src="' + escaparHtml(p.imagenes[0].url) + '" alt="' + escaparHtml(p.nombre) + '" loading="lazy">' :
+        '<div class="es-card-placeholder" aria-hidden="true">📦</div>';
 
-    var precioHTML = '<span style="font-size:1.2rem;font-weight:700;color:var(--primary);">' + formatPrecio(p.precio) + '</span>';
+    var descuento = '';
+    var precioHTML = '<span class="es-card-precio">' + formatPrecio(p.precio) + '</span>';
     if (p.precioOriginal && p.precioOriginal > p.precio) {
-        precioHTML += ' <span style="font-size:0.85rem;color:var(--gray-500);text-decoration:line-through;">' + formatPrecio(p.precioOriginal) + '</span>';
+        precioHTML += ' <span class="es-card-precio-old">' + formatPrecio(p.precioOriginal) + '</span>';
+        descuento = '<span class="es-card-descuento">-' + Math.round((1 - p.precio / p.precioOriginal) * 100) + '%</span>';
     }
 
-    return '<div class="es-product-card" style="background:var(--white);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;cursor:pointer;transition:transform 0.2s" ' +
-        'data-href="' + prefix + 'producto.html?id=' + encodeURIComponent(p._id) + '" ' +
-        'data-hover="translateY(-4px)">' +
-        img +
-        '<div style="padding:1rem;">' +
-        '<h3 style="font-size:1rem;margin-bottom:0.25rem;">' + escaparHtml(p.nombre) + '</h3>' +
-        '<div style="font-size:0.8rem;color:var(--gray-500);margin-bottom:0.5rem;">' + escaparHtml(p.marca || '') + ' ' + condicionBadge(p.condicion) + '</div>' +
-        precioHTML +
-        '<div style="margin-top:0.25rem;">' + stockBadge(p.stock) + '</div>' +
-        '</div></div>';
+    return '<article class="es-product-card" tabindex="0" role="link" aria-label="' + escaparHtml(p.nombre) + '" ' +
+        'data-href="' + prefix + 'producto.html?id=' + encodeURIComponent(p._id) + '">' +
+        '<div class="es-card-img">' + img + descuento + '</div>' +
+        '<div class="es-card-body">' +
+        '<div class="es-card-meta">' + escaparHtml(p.marca || 'Genérico') + ' ' + condicionBadge(p.condicion) + '</div>' +
+        '<h3 class="es-card-titulo">' + escaparHtml(p.nombre) + '</h3>' +
+        '<div class="es-card-precios">' + precioHTML + '</div>' +
+        '<div class="es-card-stock">' + stockBadge(p.stock) + '</div>' +
+        '<span class="es-card-cta">Ver detalle →</span>' +
+        '</div></article>';
 }
+// Abrir la tarjeta con Enter (accesibilidad de teclado)
+$(document).on('keydown', '.es-product-card', function(e) {
+    if (e.key === 'Enter' && $(this).data('href')) window.location.href = $(this).data('href');
+});
 
 // ===== DataTables: helpers compartidos (requiere jQuery + DataTables) =====
 // Llamar ANTES de reescribir el <tbody> para quitar la instancia anterior

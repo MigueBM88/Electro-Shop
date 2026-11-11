@@ -21,8 +21,8 @@ $(function() {
             }
 
             if (d.items.length === 0) {
-                $cont.html('<div class="card text-center" style="padding:2rem">' +
-                    '<p style="font-size:3rem;margin:0">🛒</p>' +
+                $cont.html('<div class="card es-vacio">' +
+                    '<p class="es-vacio-icono" aria-hidden="true">🛒</p>' +
                     '<p class="text-muted">Tu carrito está vacío.</p>' +
                     '<a href="catalogo.html" class="btn btn-primary btn-sm" style="width:auto;margin:0 auto">Ir al catálogo</a>' +
                     '</div>');
@@ -50,7 +50,7 @@ $(function() {
                 '<thead><tr><th>Producto</th><th>Precio</th><th>Cantidad</th><th>Subtotal</th><th></th></tr></thead>' +
                 '<tbody>' + filas + '</tbody></table></div></div>' +
 
-                '<div class="card" style="max-width:360px;margin-left:auto;margin-top:1rem">' +
+                '<aside class="card es-carrito-resumen" aria-label="Resumen del carrito">' +
                 '<h3 style="margin-bottom:0.75rem">Resumen</h3>' +
                 '<div style="display:flex;justify-content:space-between;margin-bottom:0.4rem"><span>Subtotal</span><span>' + formatPrecio(res.subtotal) + '</span></div>' +
                 '<div style="display:flex;justify-content:space-between;margin-bottom:0.4rem"><span>IVA (13%)</span><span>' + formatPrecio(res.impuesto) + '</span></div>' +
@@ -60,7 +60,7 @@ $(function() {
                 '<div style="display:flex;justify-content:space-between;font-size:1.1rem;font-weight:700;margin-bottom:0.75rem"><span>Total</span><span style="color:var(--primary)">' + formatPrecio(res.total) + '</span></div>' +
                 '<a href="checkout.html" class="btn btn-primary" style="margin-bottom:0.5rem">Proceder al pago</a>' +
                 '<button class="btn btn-outline btn-sm" data-action="vaciar-carrito">Vaciar carrito</button>' +
-                '</div>');
+                '</aside>');
         } catch (e) {
             $cont.html('<p class="text-muted">Error de conexión con el servidor.</p>');
         } finally {

@@ -30,7 +30,7 @@ $(function() {
             var envioTxt = res.envio === 0 ? 'GRATIS' : formatPrecio(res.envio);
 
             var itemsHTML = carritoActual.items.map(function(i) {
-                return '<div style="display:flex;justify-content:space-between;font-size:0.85rem;margin-bottom:0.3rem">' +
+                return '<div class="es-resumen-item">' +
                     '<span>' + esc(i.cantidad) + '× ' + esc(i.nombre) + '</span><span>' + formatPrecio(i.subtotal) + '</span></div>';
             }).join('');
 
@@ -38,8 +38,8 @@ $(function() {
                 // Columna izquierda: formulario
                 '<div>' +
                   '<div class="card">' +
-                    '<h3 style="margin-bottom:0.75rem">📍 Dirección de envío</h3>' +
-                    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0 1rem">' +
+                    '<h3 class="es-checkout-titulo"><span class="es-num">1</span> Dirección de envío</h3>' +
+                    '<div class="es-checkout-campos">' +
                       campo('Provincia', 'dProvincia', dir.provincia) +
                       campo('Cantón', 'dCanton', dir.canton) +
                       campo('Distrito', 'dDistrito', dir.distrito) +
@@ -48,7 +48,7 @@ $(function() {
                   '</div>' +
 
                   '<div class="card" style="margin-top:1rem">' +
-                    '<h3 style="margin-bottom:0.75rem">💳 Método de pago</h3>' +
+                    '<h3 class="es-checkout-titulo"><span class="es-num">2</span> Método de pago</h3>' +
                     '<div class="form-group">' +
                       '<select id="metodoPago">' +
                         '<option value="tarjeta">Tarjeta de crédito/débito</option>' +
@@ -65,8 +65,8 @@ $(function() {
                 '</div>' +
 
                 // Columna derecha: resumen
-                '<div class="card">' +
-                  '<h3 style="margin-bottom:0.75rem">Tu pedido</h3>' +
+                '<aside class="card es-checkout-resumen" aria-label="Resumen del pedido">' +
+                  '<h3 class="es-resumen-head">Tu pedido <span class="badge badge-primary">' + esc(carritoActual.items.length) + '</span></h3>' +
                   itemsHTML +
                   '<hr style="margin:0.5rem 0">' +
                   fila('Subtotal', formatPrecio(res.subtotal)) +
@@ -75,7 +75,8 @@ $(function() {
                   '<hr style="margin:0.5rem 0">' +
                   '<div style="display:flex;justify-content:space-between;font-size:1.1rem;font-weight:700;margin-bottom:0.75rem"><span>Total</span><span style="color:var(--primary)">' + formatPrecio(res.total) + '</span></div>' +
                   '<button id="btnPagar" class="btn btn-primary" data-action="pagar">Confirmar y pagar</button>' +
-                '</div>');
+                  '<p class="es-seguro">🔒 Pago simulado y seguro</p>' +
+                '</aside>');
         } catch (e) {
             $cont.html('<p class="text-muted">Error de conexión con el servidor.</p>');
         } finally {
@@ -84,7 +85,7 @@ $(function() {
     }
 
     function campo(label, id, valor) {
-        return '<div class="form-group"><label>' + label + '</label><input type="text" id="' + id + '" value="' + esc(valor || '') + '"></div>';
+        return '<div class="form-group"><label for="' + id + '">' + label + '</label><input type="text" id="' + id + '" value="' + esc(valor || '') + '"></div>';
     }
     function fila(label, valor) {
         return '<div style="display:flex;justify-content:space-between;margin-bottom:0.4rem"><span>' + label + '</span><span>' + valor + '</span></div>';

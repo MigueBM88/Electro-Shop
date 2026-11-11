@@ -18,6 +18,7 @@ $(function() {
                 var u = r.datos.usuario;
                 perfilData = u;
                 $('#vNombre').text(u.nombre);
+        $('#vAvatar').text(String(perfilData.nombre || '?').trim().charAt(0).toUpperCase());
                 $('#vCorreo').text(u.correo);
                 $('#vTelefono').text(u.telefono || 'No registrado');
                 $('#vProvincia').text((u.direccion && u.direccion.provincia) || '—');

@@ -35,8 +35,8 @@ $(function() {
 
                 $grid.html(r.datos.categorias.map(function(c) {
                     return tarjetaCategoria(c, '📦',
-                        'background:var(--white);border-radius:12px;box-shadow:var(--shadow);padding:1.5rem;text-align:center;cursor:pointer;transition:transform 0.2s',
-                        'translateY(-3px)',
+                        '',
+                        '',
                         'font-size:2.5rem;margin-bottom:0.5rem;',
                         'font-weight:600;font-size:1rem;margin-bottom:0.25rem;',
                         '<div style="font-size:0.8rem;color:var(--gray-500);">' + esc(c.cantidadProductos || 0) + ' productos</div>');
@@ -63,8 +63,8 @@ $(function() {
             if (r.exito && r.datos.subcategorias && r.datos.subcategorias.length > 0) {
                 $gridSub.html(r.datos.subcategorias.map(function(s) {
                     return tarjetaCategoria(s, '📁',
-                        'background:var(--white);border-radius:12px;box-shadow:var(--shadow);padding:1rem;text-align:center;cursor:pointer;transition:transform 0.2s',
-                        'translateY(-2px)',
+                        '',
+                        '',
                         'font-size:1.5rem;',
                         'font-weight:600;font-size:0.9rem;');
                 }).join(''));
@@ -132,5 +132,21 @@ $(function() {
         volverACategorias: volverACategorias
     });
 
+    // === Destacados (carrusel con desplazamiento horizontal) ===
+    async function cargarDestacados() {
+        try {
+            var r = await apiBuscarProductos('?limite=10&pagina=1');
+            if (!r.exito || !r.datos.productos || r.datos.productos.length === 0) return;
+            $('#carouselDestacados').html(r.datos.productos.map(function(p) { return renderProductCard(p); }).join(''));
+            $('#zonaDestacados').removeClass('hidden');
+        } catch (e) { /* el carrusel es opcional: si falla no se muestra */ }
+    }
+    $(document).on('click', '[data-carousel]', function() {
+        var el = document.getElementById('carouselDestacados');
+        var paso = el.clientWidth * 0.8;
+        el.scrollBy({ left: $(this).data('carousel') === 'next' ? paso : -paso, behavior: 'smooth' });
+    });
+
     cargarCategorias();
+    cargarDestacados();
 });

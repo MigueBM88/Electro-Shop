@@ -12,14 +12,16 @@
 <body>
 
     <div class="container">
-        <h2 style="margin-bottom:0.5rem">🔍 Búsqueda Avanzada</h2>
-        <p class="text-muted mb-1">Encuentra componentes electrónicos por nombre, marca, precio y más</p>
+        <header class="es-page-head">
+            <h1>🔍 Búsqueda Avanzada</h1>
+            <p>Encuentra componentes electrónicos por nombre, marca, precio y más</p>
+        </header>
 
         <div id="alerta" class="alert"></div>
 
         <!-- ====== FILTROS ====== -->
         <div class="card">
-            <form id="formBuscar" style="display:flex;flex-wrap:wrap;gap:1rem;align-items:flex-end">
+            <form id="formBuscar" class="es-filtros">
                 <div class="form-group" style="flex:2;min-width:200px;margin-bottom:0">
                     <label>Buscar</label>
                     <input type="text" id="fBusqueda" placeholder="Arduino, resistencia, multímetro...">
@@ -78,7 +80,7 @@
             <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div>
         </div>
         <div id="infoResultados" class="text-muted mb-1"></div>
-        <div id="gridResultados" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1.5rem;"></div>
+        <div id="gridResultados" class="es-grid-productos"></div>
         <div id="paginacion" class="text-center text-muted mt-1"></div>
 
         <!-- ====== SUGERENCIAS (sin resultados) ====== -->
