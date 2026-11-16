@@ -20,7 +20,7 @@ const {
 // IMPORTANTE: las rutas específicas van ANTES de /:id
 // para que Express no interprete 'buscar', 'marcas', etc. como un id.
 // ============================================
-router.get('/buscar', validarQueryIds('categoria'), validarQueryTextos('busqueda', 'condicion'), buscarProductos);
+router.get('/buscar', validarQueryIds('categoria'), validarQueryTextos('q', 'busqueda', 'marca', 'condicion', 'disponibilidad', 'ordenar', 'precioMin', 'precioMax'), buscarProductos);
 router.get('/marcas', listarMarcas);
 router.get('/categoria/:catId', validarId('catId'), productosPorCategoria);
 

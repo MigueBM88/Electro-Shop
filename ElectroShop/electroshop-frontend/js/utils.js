@@ -604,9 +604,15 @@ $(function() {
 });
 
 // Escape cierra el modal de formulario de arriba (si no hay un modal de error/confirmación encima)
+// Se revisa en fase de captura (antes que cualquier otro handler) si había un modal
+// de error/confirmación/info abierto; así Escape cierra solo ese y no el formulario de abajo.
+var esHabiaDialogoEncima = false;
+window.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') esHabiaDialogoEncima = !!document.querySelector('#esErrorModal, #esConfirmModal, #esInfoModal');
+}, true);
 $(document).on('keydown', function(e) {
     if (e.key !== 'Escape') return;
-    if ($('#esErrorModal, #esConfirmModal, #esInfoModal').length) return;
+    if (esHabiaDialogoEncima) return;
     $('.modal-overlay.visible').last().removeClass('visible');
 });
 
