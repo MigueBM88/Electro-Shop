@@ -44,15 +44,15 @@ $(function() {
             $cont.html(ss.map(function(s) {
                 var cliente = s.usuario ? (esc(s.usuario.nombre) + ' (' + esc(s.usuario.correo) + ')') : '—';
                 var oferta = s.ofertaAdmin != null ? ' · Oferta: ' + formatPrecio(s.ofertaAdmin) : '';
-                return '<div class="card" style="margin-bottom:0.75rem">' +
-                    '<div style="display:flex;justify-content:space-between;align-items:center">' +
+                return '<div class="es-mb-3 card">' +
+                    '<div class="es-fila">' +
                     '<strong>' + esc(s.nombreEquipo) + '</strong>' + tiBadge(s.estado) + '</div>' +
                     '<div class="text-muted" style="font-size:0.82rem;margin-top:0.3rem">' + esc(s.descripcion) + '</div>' +
-                    '<div style="font-size:0.8rem;margin-top:0.3rem">Cliente: ' + cliente + ' · Condición: ' + esc(s.condicionDeclarada) +
+                    '<div class="es-meta">Cliente: ' + cliente + ' · Condición: ' + esc(s.condicionDeclarada) +
                     (s.precioEstimadoCliente ? ' · Espera: ' + formatPrecio(s.precioEstimadoCliente) : '') + oferta + '</div>' +
-                    (s.respuestaCliente === 'contraoferta' ? '<div style="font-size:0.8rem;margin-top:0.3rem"><strong>🔁 El cliente propone:</strong> ' + formatPrecio(s.contraofertaCliente) + '</div>' : '') +
-                    ((s.respuestaCliente === 'aceptada' || s.respuestaCliente === 'rechazada') ? '<div style="font-size:0.8rem;margin-top:0.3rem"><strong>Respuesta del cliente:</strong> ' + (s.respuestaCliente === 'aceptada' ? '✅ Aceptó la contraoferta' : '❌ Rechazó la contraoferta') + '</div>' : '') +
-                    (s.estado === 'contraoferta' ? '<div class="text-muted" style="font-size:0.8rem;margin-top:0.3rem">Esperando respuesta del cliente</div>' : '') +
+                    (s.respuestaCliente === 'contraoferta' ? '<div class="es-meta"><strong>🔁 El cliente propone:</strong> ' + formatPrecio(s.contraofertaCliente) + '</div>' : '') +
+                    ((s.respuestaCliente === 'aceptada' || s.respuestaCliente === 'rechazada') ? '<div class="es-meta"><strong>Respuesta del cliente:</strong> ' + (s.respuestaCliente === 'aceptada' ? '✅ Aceptó la contraoferta' : '❌ Rechazó la contraoferta') + '</div>' : '') +
+                    (s.estado === 'contraoferta' ? '<div class="es-meta text-muted">Esperando respuesta del cliente</div>' : '') +
                     historialHTML(s.historial) +
                     (s.respuestaCliente === 'contraoferta' && s.contraofertaCliente != null ? '<button type="button" class="btn btn-sm btn-success" style="margin-top:0.5rem;margin-right:0.5rem;width:auto" data-action="aceptar-propuesta" data-id="' + esc(s._id) + '" data-nombre="' + esc(s.nombreEquipo) + '" data-monto="' + esc(s.contraofertaCliente) + '">✅ Aceptar propuesta (' + formatPrecio(s.contraofertaCliente) + ')</button>' : '') +
                     '<button class="btn btn-sm btn-primary" style="margin-top:0.5rem;width:auto" data-action="abrir-eval" data-id="' + esc(s._id) + '" data-nombre="' + esc(s.nombreEquipo) + '" data-oferta="' + esc(s.respuestaCliente === 'contraoferta' && s.contraofertaCliente != null ? s.contraofertaCliente : (s.ofertaAdmin || 0)) + '">Evaluar</button>' +

@@ -147,19 +147,19 @@ $(function() {
 
             // Formulario para dejar reseña
             var form = '<div class="card" style="margin-bottom:1rem">' +
-                '<h4 style="margin-bottom:0.5rem">Deja tu reseña</h4>' +
-                '<div class="form-group"><label>Calificación</label>' +
+                '<h4 class="es-mb-2">Deja tu reseña</h4>' +
+                '<div class="form-group"><label for="miCalificacion">Calificación</label>' +
                 '<select id="miCalificacion"><option value="5">★★★★★ (5)</option><option value="4">★★★★ (4)</option><option value="3">★★★ (3)</option><option value="2">★★ (2)</option><option value="1">★ (1)</option></select></div>' +
-                '<div class="form-group"><label>Comentario (opcional)</label><textarea id="miComentario" rows="3" placeholder="¿Qué te pareció el producto?"></textarea></div>' +
-                '<button class="btn btn-primary btn-sm" style="width:auto" id="btnPublicarResena" data-action="enviar-resena">Publicar reseña</button>' +
+                '<div class="form-group"><label for="miComentario">Comentario (opcional)</label><textarea id="miComentario" rows="3" placeholder="¿Qué te pareció el producto?"></textarea></div>' +
+                '<button class="es-w-auto btn btn-primary btn-sm" id="btnPublicarResena" data-action="enviar-resena">Publicar reseña</button>' +
                 '</div>';
 
             var lista = resenas.length === 0
                 ? '<p class="text-muted">Todavía no hay reseñas. ¡Sé el primero!</p>'
                 : resenas.map(function(re) {
                     var verif = re.compraVerificada ? ' <span class="badge badge-success" style="font-size:0.6rem">Compra verificada</span>' : '';
-                    return '<div class="card" style="margin-bottom:0.75rem">' +
-                        '<div style="display:flex;justify-content:space-between;align-items:center">' +
+                    return '<div class="es-mb-3 card">' +
+                        '<div class="es-fila">' +
                         '<strong>' + esc(re.nombreUsuario || 'Usuario') + '</strong>' + estrellasHTML(re.calificacion) + '</div>' +
                         verif +
                         (re.comentario ? '<p style="margin-top:0.4rem;font-size:0.9rem">' + esc(re.comentario) + '</p>' : '') +

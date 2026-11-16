@@ -41,7 +41,7 @@
         <div class="modal" style="max-width:440px">
             <h3 id="evalTitulo">Evaluar solicitud</h3>
             <input type="hidden" id="evalId">
-            <div class="form-group"><label>Decisión</label>
+            <div class="form-group"><label for="evalEstado">Decisión</label>
                 <select id="evalEstado">
                     <option value="en_revision">En revisión</option>
                     <option value="aprobado">Aprobar</option>
@@ -49,8 +49,8 @@
                     <option value="rechazado">Rechazar</option>
                 </select>
             </div>
-            <div class="form-group"><label>Oferta de crédito (₡)</label><input type="number" id="evalOferta" min="0" placeholder="30000"></div>
-            <div class="form-group"><label>Nota para el cliente</label><textarea id="evalNota" rows="2"></textarea></div>
+            <div class="form-group"><label for="evalOferta">Oferta de crédito (₡)</label><input type="number" id="evalOferta" min="0" placeholder="30000"></div>
+            <div class="form-group"><label for="evalNota">Nota para el cliente</label><textarea id="evalNota" rows="2"></textarea></div>
             <div class="btn-group">
                 <button class="btn btn-outline" data-action="cerrar-modal">Cancelar</button>
                 <button class="btn btn-primary" id="btnGuardarEval" data-action="guardar-eval">Guardar evaluación</button>

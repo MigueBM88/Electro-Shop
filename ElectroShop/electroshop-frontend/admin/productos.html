@@ -21,7 +21,7 @@
 
         <div id="alerta" class="alert"></div>
 
-        <button class="btn btn-primary btn-sm mb-1" style="width:auto" data-action="nuevo-producto">+ Nuevo Producto</button>
+        <button class="es-w-auto btn btn-primary btn-sm mb-1" data-action="nuevo-producto">+ Nuevo Producto</button>
 
         <div class="filters-bar">
             <select id="fCategoria"><option value="">Todas las categorías</option></select>
@@ -75,31 +75,31 @@
 
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 1rem;">
                 <div class="form-group">
-                    <label>Nombre *</label>
+                    <label for="prodNombre">Nombre *</label>
                     <input type="text" id="prodNombre" placeholder="Arduino Uno R3" required>
                 </div>
                 <div class="form-group">
-                    <label>SKU</label>
+                    <label for="prodSku">SKU</label>
                     <input type="text" id="prodSku" placeholder="ARD-UNO-001">
                 </div>
                 <div class="form-group">
-                    <label>Categoría *</label>
+                    <label for="prodCategoria">Categoría *</label>
                     <select id="prodCategoria" required><option value="">Seleccionar...</option></select>
                 </div>
                 <div class="form-group">
-                    <label>Marca</label>
+                    <label for="prodMarca">Marca</label>
                     <input type="text" id="prodMarca" placeholder="Arduino" value="Genérico">
                 </div>
                 <div class="form-group">
-                    <label>Precio (₡) *</label>
+                    <label for="prodPrecio">Precio (₡) *</label>
                     <input type="number" id="prodPrecio" placeholder="15000" min="0" step="0.01" required>
                 </div>
                 <div class="form-group">
-                    <label>Stock *</label>
+                    <label for="prodStock">Stock *</label>
                     <input type="number" id="prodStock" placeholder="50" min="0" required>
                 </div>
                 <div class="form-group">
-                    <label>Condición</label>
+                    <label for="prodCondicion">Condición</label>
                     <select id="prodCondicion">
             <option value="nuevo">Nuevo</option>
             <option value="reacondicionado">Reacondicionado</option>
@@ -107,21 +107,21 @@
           </select>
                 </div>
                 <div class="form-group">
-                    <label>Precio original (si aplica)</label>
+                    <label for="prodPrecioOriginal">Precio original (si aplica)</label>
                     <input type="number" id="prodPrecioOriginal" placeholder="Solo para reacondicionados" min="0" step="0.01">
                 </div>
             </div>
 
             <div class="form-group">
-                <label>Descripción *</label>
+                <label for="prodDescripcion">Descripción *</label>
                 <textarea id="prodDescripcion" placeholder="Descripción detallada del producto..." rows="3"></textarea>
             </div>
             <div class="form-group">
-                <label>URL de Datasheet (PDF)</label>
+                <label for="prodDatasheet">URL de Datasheet (PDF)</label>
                 <input type="text" id="prodDatasheet" placeholder="https://...pdf">
             </div>
             <div class="form-group">
-                <label>Especificaciones (una por línea: Nombre: Valor)</label>
+                <label for="prodSpecs">Especificaciones (una por línea: Nombre: Valor)</label>
                 <textarea id="prodSpecs" placeholder="Voltaje: 5V&#10;Pines digitales: 14&#10;Pines analógicos: 6" rows="4"></textarea>
             </div>
 

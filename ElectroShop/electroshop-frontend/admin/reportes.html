@@ -30,7 +30,7 @@
         <div class="card" style="margin-bottom:1.5rem">
             <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem">
                 <h3 style="margin:0">💰 Ingresos por día</h3>
-                <select id="rango" style="width:auto">
+                <select class="es-w-auto" id="rango">
                     <option value="7">Últimos 7 días</option>
                     <option value="30" selected>Últimos 30 días</option>
                     <option value="90">Últimos 90 días</option>
@@ -42,12 +42,12 @@
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
             <!-- Productos más vendidos -->
             <div class="card">
-                <h3 style="margin-bottom:0.75rem">🏆 Productos más vendidos</h3>
+                <h3 class="es-mb-3">🏆 Productos más vendidos</h3>
                 <div style="height:320px"><canvas id="chartProductos"></canvas></div>
             </div>
             <!-- Pedidos por estado -->
             <div class="card">
-                <h3 style="margin-bottom:0.75rem">📦 Pedidos por estado</h3>
+                <h3 class="es-mb-3">📦 Pedidos por estado</h3>
                 <div style="height:320px"><canvas id="chartEstados"></canvas></div>
             </div>
         </div>

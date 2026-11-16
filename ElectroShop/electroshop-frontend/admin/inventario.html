@@ -29,7 +29,7 @@
         </div>
         <!-- Alertas de bajo stock -->
         <div class="card">
-            <h3 style="margin-bottom:0.75rem">⚠️ Alertas de stock bajo / agotado</h3>
+            <h3 class="es-mb-3">⚠️ Alertas de stock bajo / agotado</h3>
             <div class="table-container">
                 <table id="tablaInventario" class="display" style="width:100%">
                     <thead><tr><th>Producto</th><th>Categoría</th><th>Stock</th><th>Ajustar</th></tr></thead>
@@ -45,7 +45,7 @@
             <h3 id="ajusteTitulo">Ajustar stock</h3>
             <input type="hidden" id="ajusteProdId">
             <div class="form-group">
-                <label>Tipo de movimiento</label>
+                <label for="ajusteTipo">Tipo de movimiento</label>
                 <select id="ajusteTipo">
                     <option value="entrada">Entrada (sumar al stock)</option>
                     <option value="salida">Salida (restar del stock)</option>
@@ -53,11 +53,11 @@
                 </select>
             </div>
             <div class="form-group">
-                <label>Cantidad</label>
+                <label for="ajusteCantidad">Cantidad</label>
                 <input type="number" id="ajusteCantidad" min="0" value="0">
             </div>
             <div class="form-group">
-                <label>Motivo (opcional)</label>
+                <label for="ajusteMotivo">Motivo (opcional)</label>
                 <input type="text" id="ajusteMotivo" placeholder="Reposición de proveedor, merma, conteo físico...">
             </div>
             <div class="btn-group">

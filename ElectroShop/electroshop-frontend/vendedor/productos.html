@@ -18,7 +18,7 @@
         </header>
         <div id="alerta" class="alert"></div>
 
-        <button class="btn btn-primary btn-sm mb-1" style="width:auto" data-action="nuevo-producto">+ Nuevo Producto</button>
+        <button class="es-w-auto btn btn-primary btn-sm mb-1" data-action="nuevo-producto">+ Nuevo Producto</button>
 
         <!-- Spinner de carga (se muestra con mostrarSpinner / ocultarSpinner) -->
         <div id="cargando" class="cargando-contenedor d-none">
@@ -40,17 +40,17 @@
             <h3 id="modalTitulo">Nuevo Producto</h3>
             <input type="hidden" id="prodId">
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 1rem">
-                <div class="form-group"><label>Nombre *</label><input type="text" id="pNombre"></div>
-                <div class="form-group"><label>SKU</label><input type="text" id="pSku"></div>
-                <div class="form-group"><label>Categoría *</label><select id="pCategoria"><option value="">Seleccionar...</option></select></div>
-                <div class="form-group"><label>Marca</label><input type="text" id="pMarca" value="Genérico"></div>
-                <div class="form-group"><label>Precio (₡) *</label><input type="number" id="pPrecio" min="0"></div>
-                <div class="form-group"><label>Stock *</label><input type="number" id="pStock" min="0"></div>
-                <div class="form-group"><label>Condición</label>
+                <div class="form-group"><label for="pNombre">Nombre *</label><input type="text" id="pNombre"></div>
+                <div class="form-group"><label for="pSku">SKU</label><input type="text" id="pSku"></div>
+                <div class="form-group"><label for="pCategoria">Categoría *</label><select id="pCategoria"><option value="">Seleccionar...</option></select></div>
+                <div class="form-group"><label for="pMarca">Marca</label><input type="text" id="pMarca" value="Genérico"></div>
+                <div class="form-group"><label for="pPrecio">Precio (₡) *</label><input type="number" id="pPrecio" min="0"></div>
+                <div class="form-group"><label for="pStock">Stock *</label><input type="number" id="pStock" min="0"></div>
+                <div class="form-group"><label for="pCondicion">Condición</label>
                     <select id="pCondicion"><option value="nuevo">Nuevo</option><option value="reacondicionado">Reacondicionado</option><option value="poco_uso">Poco uso</option></select>
                 </div>
             </div>
-            <div class="form-group"><label>Descripción *</label><textarea id="pDescripcion" rows="3"></textarea></div>
+            <div class="form-group"><label for="pDescripcion">Descripción *</label><textarea id="pDescripcion" rows="3"></textarea></div>
             <div class="btn-group">
                 <button class="btn btn-outline" data-action="cerrar-modal">Cancelar</button>
                 <button class="btn btn-primary" id="btnGuardarProducto" data-action="guardar-producto">Guardar</button>

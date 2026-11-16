@@ -21,10 +21,10 @@
         <div class="es-tradein-grid">
             <!-- Formulario de solicitud -->
             <div class="card es-tradein-form">
-                <h3 style="margin-bottom:0.75rem">♻️ Nueva solicitud</h3>
-                <div class="form-group"><label>Equipo *</label><input type="text" id="nombreEquipo" placeholder="Osciloscopio Hantek DSO5102P"></div>
-                <div class="form-group"><label>Descripción del estado *</label><textarea id="descripcion" rows="3" placeholder="Funciona perfecto, incluye puntas y caja original..."></textarea></div>
-                <div class="form-group"><label>Condición</label>
+                <h3 class="es-mb-3">♻️ Nueva solicitud</h3>
+                <div class="form-group"><label for="nombreEquipo">Equipo *</label><input type="text" id="nombreEquipo" placeholder="Osciloscopio Hantek DSO5102P"></div>
+                <div class="form-group"><label for="descripcion">Descripción del estado *</label><textarea id="descripcion" rows="3" placeholder="Funciona perfecto, incluye puntas y caja original..."></textarea></div>
+                <div class="form-group"><label for="condicion">Condición</label>
                     <select id="condicion">
                         <option value="excelente">Excelente</option>
                         <option value="bueno" selected>Bueno</option>
@@ -32,13 +32,13 @@
                         <option value="para_repuestos">Para repuestos</option>
                     </select>
                 </div>
-                <div class="form-group"><label>Precio esperado (₡, opcional)</label><input type="number" id="precioEstimado" min="0" placeholder="35000"></div>
+                <div class="form-group"><label for="precioEstimado">Precio esperado (₡, opcional)</label><input type="number" id="precioEstimado" min="0" placeholder="35000"></div>
                 <button class="btn btn-primary" id="btnEnviarTradein" data-action="enviar-tradein">Enviar solicitud</button>
             </div>
 
             <!-- Mis solicitudes -->
             <div>
-                <h3 style="margin-bottom:0.75rem">Mis solicitudes</h3>
+                <h3 class="es-mb-3">Mis solicitudes</h3>
                 <!-- Spinner de carga (se muestra con mostrarSpinner / ocultarSpinner) -->
                 <div id="cargando" class="cargando-contenedor d-none">
                     <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div>

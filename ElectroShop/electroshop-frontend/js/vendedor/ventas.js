@@ -16,7 +16,7 @@ $(function() {
 
             $('#totalVendido').html(
                 '<div style="font-size:1.6rem;font-weight:700;color:var(--success)">' + formatPrecio(r.datos.totalVendido) + '</div>' +
-                '<div class="text-muted" style="font-size:0.8rem">Total vendido (pedidos confirmados)</div>');
+                '<div class="es-txt-sm text-muted">Total vendido (pedidos confirmados)</div>');
 
             var ventas = r.datos.ventas;
             if (ventas.length === 0) { $cont.html('<p class="text-muted">Aún no tienes ventas.</p>'); return; }
@@ -25,12 +25,12 @@ $(function() {
                 var lineas = v.lineas.map(function(l) {
                     return '<div style="display:flex;justify-content:space-between;font-size:0.85rem"><span>' + esc(l.cantidad) + '× ' + esc(l.nombre) + '</span><span>' + formatPrecio(l.subtotal) + '</span></div>';
                 }).join('');
-                return '<div class="card" style="margin-bottom:0.75rem">' +
-                    '<div style="display:flex;justify-content:space-between;align-items:center">' +
+                return '<div class="es-mb-3 card">' +
+                    '<div class="es-fila">' +
                     '<strong>' + esc(v.numero) + '</strong>' + estadoPedidoBadge(v.estado) + '</div>' +
                     '<div class="text-muted" style="font-size:0.78rem;margin:0.2rem 0 0.5rem">' + formatFecha(v.fecha) + ' · Cliente: ' + esc(v.cliente) + '</div>' +
                     lineas +
-                    '<hr style="margin:0.5rem 0"><div style="display:flex;justify-content:space-between;font-weight:700"><span>Tu subtotal</span><span style="color:var(--primary)">' + formatPrecio(v.subtotalVendedor) + '</span></div>' +
+                    '<hr class="es-my-2"><div style="display:flex;justify-content:space-between;font-weight:700"><span>Tu subtotal</span><span class="es-txt-primary">' + formatPrecio(v.subtotalVendedor) + '</span></div>' +
                     '</div>';
             }).join(''));
         } finally {

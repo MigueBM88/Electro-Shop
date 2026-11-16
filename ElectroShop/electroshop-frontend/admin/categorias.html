@@ -19,7 +19,7 @@
 
         <div id="alerta" class="alert"></div>
 
-        <button class="btn btn-primary btn-sm mb-1" style="width:auto" data-action="nueva-categoria">+ Nueva Categoría</button>
+        <button class="es-w-auto btn btn-primary btn-sm mb-1" data-action="nueva-categoria">+ Nueva Categoría</button>
 
         <!-- Spinner de carga (se muestra con mostrarSpinner / ocultarSpinner) -->
         <div id="cargando" class="cargando-contenedor d-none">
@@ -39,23 +39,23 @@
             <h3 id="modalTitulo">Nueva Categoría</h3>
             <input type="hidden" id="modalCatId">
             <div class="form-group">
-                <label>Nombre</label>
+                <label for="catNombre">Nombre</label>
                 <input type="text" id="catNombre" placeholder="Ej: Componentes Pasivos" required>
             </div>
             <div class="form-group">
-                <label>Descripción (opcional)</label>
+                <label for="catDescripcion">Descripción (opcional)</label>
                 <input type="text" id="catDescripcion" placeholder="Breve descripción">
             </div>
             <div class="form-group">
-                <label>Ícono (emoji)</label>
+                <label for="catIcono">Ícono (emoji)</label>
                 <input type="text" id="catIcono" placeholder="Ej: 🔌" maxlength="5" value="📦">
             </div>
             <div class="form-group">
-                <label>Categoría padre (dejar vacío si es principal)</label>
+                <label for="catPadre">Categoría padre (dejar vacío si es principal)</label>
                 <select id="catPadre"><option value="">— Ninguna (categoría principal) —</option></select>
             </div>
             <div class="form-group">
-                <label>Orden de visualización</label>
+                <label for="catOrden">Orden de visualización</label>
                 <input type="number" id="catOrden" value="0" min="0">
             </div>
             <div class="form-group">

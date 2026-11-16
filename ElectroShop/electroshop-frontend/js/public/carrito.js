@@ -51,14 +51,14 @@ $(function() {
                 '<tbody>' + filas + '</tbody></table></div></div>' +
 
                 '<aside class="card es-carrito-resumen" aria-label="Resumen del carrito">' +
-                '<h3 style="margin-bottom:0.75rem">Resumen</h3>' +
-                '<div style="display:flex;justify-content:space-between;margin-bottom:0.4rem"><span>Subtotal</span><span>' + formatPrecio(res.subtotal) + '</span></div>' +
-                '<div style="display:flex;justify-content:space-between;margin-bottom:0.4rem"><span>IVA (13%)</span><span>' + formatPrecio(res.impuesto) + '</span></div>' +
-                '<div style="display:flex;justify-content:space-between;margin-bottom:0.4rem"><span>Envío</span><span>' + envioTxt + '</span></div>' +
+                '<h3 class="es-mb-3">Resumen</h3>' +
+                '<div class="es-fila-total"><span>Subtotal</span><span>' + formatPrecio(res.subtotal) + '</span></div>' +
+                '<div class="es-fila-total"><span>IVA (13%)</span><span>' + formatPrecio(res.impuesto) + '</span></div>' +
+                '<div class="es-fila-total"><span>Envío</span><span>' + envioTxt + '</span></div>' +
                 (res.envio > 0 ? '<p class="text-muted" style="font-size:0.72rem;margin-bottom:0.4rem">Envío gratis en compras desde ' + formatPrecio(res.envioGratisDesde) + '</p>' : '') +
-                '<hr style="margin:0.5rem 0">' +
-                '<div style="display:flex;justify-content:space-between;font-size:1.1rem;font-weight:700;margin-bottom:0.75rem"><span>Total</span><span style="color:var(--primary)">' + formatPrecio(res.total) + '</span></div>' +
-                '<a href="checkout.html" class="btn btn-primary" style="margin-bottom:0.5rem">Proceder al pago</a>' +
+                '<hr class="es-my-2">' +
+                '<div style="display:flex;justify-content:space-between;font-size:1.1rem;font-weight:700;margin-bottom:0.75rem"><span>Total</span><span class="es-txt-primary">' + formatPrecio(res.total) + '</span></div>' +
+                '<a href="checkout.html" class="es-mb-2 btn btn-primary">Proceder al pago</a>' +
                 '<button class="btn btn-outline btn-sm" data-action="vaciar-carrito">Vaciar carrito</button>' +
                 '</aside>');
         } catch (e) {

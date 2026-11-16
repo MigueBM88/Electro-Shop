@@ -35,14 +35,14 @@ $(function() {
                         '<button type="button" class="btn btn-danger btn-sm" data-action="responder-tradein" data-id="' + esc(s._id) + '" data-aceptar="false">Rechazar</button>' +
                         '</div>' +
                         '<div class="es-ti-acciones" style="display:flex;gap:0.5rem;margin-top:0.5rem;align-items:center;flex-wrap:wrap">' +
-                        '<label for="monto-' + esc(s._id) + '" style="font-size:0.8rem">¿Otro monto?</label>' +
+                        '<label class="es-txt-sm" for="monto-' + esc(s._id) + '">¿Otro monto?</label>' +
                         '<input type="number" min="0" step="1" id="monto-' + esc(s._id) + '" placeholder="₡ tu propuesta" style="max-width:160px">' +
                         '<button type="button" class="btn btn-secondary btn-sm" data-action="proponer-tradein" data-id="' + esc(s._id) + '">Proponer</button>' +
                         '</div>';
                 } else if (s.respuestaCliente === 'contraoferta') {
-                    acciones = '<div class="text-muted" style="font-size:0.8rem;margin-top:0.3rem">Propusiste ' + formatPrecio(s.contraofertaCliente) + '. Estamos revisando tu propuesta.</div>';
+                    acciones = '<div class="es-meta text-muted">Propusiste ' + formatPrecio(s.contraofertaCliente) + '. Estamos revisando tu propuesta.</div>';
                 } else if (s.respuestaCliente) {
-                    acciones = '<div class="text-muted" style="font-size:0.8rem;margin-top:0.3rem">Tu respuesta: ' + (s.respuestaCliente === 'aceptada' ? 'aceptaste la contraoferta' : 'rechazaste la contraoferta') + '</div>';
+                    acciones = '<div class="es-meta text-muted">Tu respuesta: ' + (s.respuestaCliente === 'aceptada' ? 'aceptaste la contraoferta' : 'rechazaste la contraoferta') + '</div>';
                 }
                 var historial = '';
                 if (s.historial && s.historial.length) {
@@ -55,12 +55,12 @@ $(function() {
                         }).join('') +
                         '</ul></details>';
                 }
-                var nota = s.notaAdmin ? '<div class="text-muted" style="font-size:0.8rem;margin-top:0.3rem">Nota: ' + esc(s.notaAdmin) + '</div>' : '';
+                var nota = s.notaAdmin ? '<div class="es-meta text-muted">Nota: ' + esc(s.notaAdmin) + '</div>' : '';
                 return '<div class="card es-tradein-item es-ti-' + esc(s.estado) + '">' +
-                    '<div style="display:flex;justify-content:space-between;align-items:center">' +
+                    '<div class="es-fila">' +
                     '<strong>' + esc(s.nombreEquipo) + '</strong>' + tiBadge(s.estado) + '</div>' +
                     '<div class="text-muted" style="font-size:0.82rem;margin-top:0.3rem">' + esc(s.descripcion) + '</div>' +
-                    '<div style="font-size:0.8rem;margin-top:0.3rem">Condición: ' + esc(s.condicionDeclarada) + (s.precioEstimadoCliente ? ' · Esperabas: ' + formatPrecio(s.precioEstimadoCliente) : '') + '</div>' +
+                    '<div class="es-meta">Condición: ' + esc(s.condicionDeclarada) + (s.precioEstimadoCliente ? ' · Esperabas: ' + formatPrecio(s.precioEstimadoCliente) : '') + '</div>' +
                     oferta + nota + acciones + historial +
                     '<div class="text-muted" style="font-size:0.72rem;margin-top:0.3rem">' + formatFecha(s.createdAt) + '</div>' +
                     '</div>';

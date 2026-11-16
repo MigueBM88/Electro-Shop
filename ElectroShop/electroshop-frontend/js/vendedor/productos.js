@@ -35,7 +35,7 @@ $(function() {
                 productosPorId[p._id] = p;
                 var cat = p.categoria ? p.categoria.nombre : '—';
                 return '<tr>' +
-                    '<td><strong>' + esc(p.nombre) + '</strong><br><span class="text-muted" style="font-size:0.72rem">' + esc(p.marca || '') + '</span></td>' +
+                    '<td><strong>' + esc(p.nombre) + '</strong><br><span class="es-txt-xs text-muted">' + esc(p.marca || '') + '</span></td>' +
                     '<td>' + esc(cat) + '</td><td>' + formatPrecio(p.precio) + '</td><td>' + stockBadge(p.stock) + '</td><td>' + estadoBadge(p.activo) + '</td>' +
                     '<td><button class="btn btn-sm btn-primary" data-action="editar-producto" data-id="' + esc(p._id) + '">Editar</button> ' +
                     '<button class="btn btn-sm btn-danger" data-action="eliminar-producto" data-id="' + esc(p._id) + '">🗑️</button></td></tr>';

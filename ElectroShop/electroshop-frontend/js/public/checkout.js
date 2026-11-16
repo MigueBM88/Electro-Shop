@@ -57,9 +57,9 @@ $(function() {
                       '</select>' +
                     '</div>' +
                     '<div id="bloqueTarjeta">' +
-                      '<div class="form-group"><label>Número de tarjeta</label>' +
+                      '<div class="form-group"><label for="numTarjeta">Número de tarjeta</label>' +
                       '<input type="text" id="numTarjeta" placeholder="4111 1111 1111 1111" maxlength="19"></div>' +
-                      '<p class="text-muted" style="font-size:0.72rem">Pago simulado. Usa cualquier número. (Tip de prueba: una tarjeta terminada en 0000 será rechazada.)</p>' +
+                      '<p class="es-txt-xs text-muted">Pago simulado. Usa cualquier número. (Tip de prueba: una tarjeta terminada en 0000 será rechazada.)</p>' +
                     '</div>' +
                   '</div>' +
                 '</div>' +
@@ -68,12 +68,12 @@ $(function() {
                 '<aside class="card es-checkout-resumen" aria-label="Resumen del pedido">' +
                   '<h3 class="es-resumen-head">Tu pedido <span class="badge badge-primary">' + esc(carritoActual.items.length) + '</span></h3>' +
                   itemsHTML +
-                  '<hr style="margin:0.5rem 0">' +
+                  '<hr class="es-my-2">' +
                   fila('Subtotal', formatPrecio(res.subtotal)) +
                   fila('IVA (13%)', formatPrecio(res.impuesto)) +
                   fila('Envío', envioTxt) +
-                  '<hr style="margin:0.5rem 0">' +
-                  '<div style="display:flex;justify-content:space-between;font-size:1.1rem;font-weight:700;margin-bottom:0.75rem"><span>Total</span><span style="color:var(--primary)">' + formatPrecio(res.total) + '</span></div>' +
+                  '<hr class="es-my-2">' +
+                  '<div style="display:flex;justify-content:space-between;font-size:1.1rem;font-weight:700;margin-bottom:0.75rem"><span>Total</span><span class="es-txt-primary">' + formatPrecio(res.total) + '</span></div>' +
                   '<button id="btnPagar" class="btn btn-primary" data-action="pagar">Confirmar y pagar</button>' +
                   '<p class="es-seguro">🔒 Pago simulado y seguro</p>' +
                 '</aside>');
@@ -88,7 +88,7 @@ $(function() {
         return '<div class="form-group"><label for="' + id + '">' + label + '</label><input type="text" id="' + id + '" value="' + esc(valor || '') + '"></div>';
     }
     function fila(label, valor) {
-        return '<div style="display:flex;justify-content:space-between;margin-bottom:0.4rem"><span>' + label + '</span><span>' + valor + '</span></div>';
+        return '<div class="es-fila-total"><span>' + label + '</span><span>' + valor + '</span></div>';
     }
     function toggleTarjeta() {
         var m = $('#metodoPago').val();

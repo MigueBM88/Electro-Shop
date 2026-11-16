@@ -186,12 +186,40 @@ function construirFooterES() {
 }
 
 // === Alertas ===
+// Los mensajes de éxito se muestran como toast (esquina, se ocultan solos).
+// Los demás tipos (warning, error, info) siguen como alerta en la página.
 function mostrarAlerta(id, tipo, mensaje) {
+    if (tipo === 'success') { mostrarToast(mensaje, 'success'); ocultarAlerta(id); return; }
     var $el = $('#' + id);
     if (!$el.length) return;
     $el.text(mensaje);
     $el.attr('class', 'alert alert-' + tipo + ' visible');
 }
+
+// Toast: mensaje corto en la esquina inferior derecha que desaparece solo.
+// tipo: 'success' | 'warning' | 'info'. Se pueden apilar varios.
+function mostrarToast(mensaje, tipo, duracionMs) {
+    var $zona = $('#esToastZona');
+    if (!$zona.length) {
+        $zona = $('<div>', { id: 'esToastZona', 'class': 'es-toast-zona', 'aria-live': 'polite', 'aria-atomic': 'false' }).appendTo('body');
+    }
+    var $t = $('<div>', { 'class': 'es-toast es-toast-' + (tipo || 'info'), role: 'status' })
+        .append($('<span>', { 'class': 'es-toast-texto' }).text(mensaje))
+        .append($('<button>', { type: 'button', 'class': 'es-toast-cerrar', 'aria-label': 'Cerrar aviso' }).text('×'));
+    $zona.append($t);
+    requestAnimationFrame(function() { $t.addClass('visible'); });
+    var timer = setTimeout(quitar, duracionMs || 4000);
+    function quitar() {
+        clearTimeout(timer);
+        $t.removeClass('visible');
+        setTimeout(function() { $t.remove(); }, 250);
+    }
+    $t.on('click', '.es-toast-cerrar', quitar);
+    // Pausar mientras el mouse está encima
+    $t.on('mouseenter', function() { clearTimeout(timer); })
+      .on('mouseleave', function() { timer = setTimeout(quitar, 2000); });
+}
+window.mostrarToast = mostrarToast;
 
 function ocultarAlerta(id) {
     var $el = $('#' + id);

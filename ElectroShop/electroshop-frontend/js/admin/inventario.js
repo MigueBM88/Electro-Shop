@@ -14,7 +14,7 @@ $(function() {
         function card(titulo, valor, color) {
             return '<div class="card" style="text-align:center;padding:1rem">' +
                 '<div style="font-size:1.6rem;font-weight:700;color:' + (color || 'var(--primary)') + '">' + esc(valor) + '</div>' +
-                '<div class="text-muted" style="font-size:0.8rem">' + titulo + '</div></div>';
+                '<div class="es-txt-sm text-muted">' + titulo + '</div></div>';
         }
         $('#kpis').html(
             card('Productos', k.totalProductos) +
@@ -40,7 +40,7 @@ $(function() {
             $tbody.html(ps.map(function(p) {
                 var cat = p.categoria ? p.categoria.nombre : '—';
                 return '<tr>' +
-                    '<td><strong>' + esc(p.nombre) + '</strong><br><span class="text-muted" style="font-size:0.72rem">SKU: ' + esc(p.sku || '—') + '</span></td>' +
+                    '<td><strong>' + esc(p.nombre) + '</strong><br><span class="es-txt-xs text-muted">SKU: ' + esc(p.sku || '—') + '</span></td>' +
                     '<td>' + esc(cat) + '</td>' +
                     '<td data-order="' + esc(p.stock) + '">' + stockBadge(p.stock) + '</td>' +
                     '<td><button class="btn btn-sm btn-primary" data-action="abrir-ajuste" data-id="' + esc(p._id) + '" data-nombre="' + esc(p.nombre) + '">Ajustar</button></td>' +

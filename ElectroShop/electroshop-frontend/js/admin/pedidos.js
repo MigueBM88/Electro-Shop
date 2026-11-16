@@ -27,7 +27,7 @@ $(function() {
             }
 
             $tbody.html(pedidos.map(function(p) {
-                var cliente = p.usuario ? (esc(p.usuario.nombre) + '<br><span class="text-muted" style="font-size:0.72rem">' + esc(p.usuario.correo) + '</span>') : '—';
+                var cliente = p.usuario ? (esc(p.usuario.nombre) + '<br><span class="es-txt-xs text-muted">' + esc(p.usuario.correo) + '</span>') : '—';
                 var pagoMap = { aprobado: 'badge-success', pendiente: 'badge-warning', rechazado: 'badge-danger' };
                 var pagoBadge = '<span class="badge ' + (pagoMap[p.pago.estado] || 'badge-primary') + '">' + esc(p.pago.estado) + '</span>';
 
