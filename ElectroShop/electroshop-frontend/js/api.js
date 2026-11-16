@@ -219,6 +219,12 @@ async function apiMisTradeIn() {
 async function apiDetalleTradeIn(id) {
     return (await fetch(API_URL + '/tradein/' + id, { headers: authHeaders() })).json();
 }
+async function apiResponderTradeIn(id, aceptar) {
+    return (await fetch(API_URL + '/tradein/' + id + '/responder', { method: 'PUT', headers: authHeaders(), body: JSON.stringify({ aceptar: aceptar }) })).json();
+}
+async function apiProponerMontoTradeIn(id, monto) {
+    return (await fetch(API_URL + '/tradein/' + id + '/responder', { method: 'PUT', headers: authHeaders(), body: JSON.stringify({ montoPropuesto: monto }) })).json();
+}
 async function apiListarTradeInAdmin(params) {
     return (await fetch(API_URL + '/tradein/admin/lista' + (params || ''), { headers: authHeaders() })).json();
 }

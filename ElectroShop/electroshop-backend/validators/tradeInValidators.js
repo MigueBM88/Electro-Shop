@@ -67,4 +67,17 @@ const validarEvaluarTradeIn = [
   manejarErroresValidacion
 ];
 
-module.exports = { validarCrearTradeIn, validarEvaluarTradeIn };
+// PUT /api/tradein/:id/responder  (cliente)  body: { aceptar: true|false }
+const validarResponderTradeIn = [
+  // Se envía 'aceptar' (true/false) o 'montoPropuesto' (contraoferta del cliente)
+  body('aceptar')
+    .if((value, { req }) => req.body.montoPropuesto === undefined || req.body.montoPropuesto === null || req.body.montoPropuesto === '')
+    .exists({ values: 'null' }).withMessage('Debes aceptar, rechazar o proponer otro monto').bail()
+    .isBoolean({ strict: true }).withMessage('El valor de aceptar debe ser true o false'),
+  body('montoPropuesto')
+    .optional({ values: 'falsy' })
+    .isFloat({ min: 0 }).withMessage('El monto propuesto debe ser un número mayor o igual a 0'),
+  manejarErroresValidacion
+];
+
+module.exports = { validarCrearTradeIn, validarEvaluarTradeIn, validarResponderTradeIn };

@@ -96,6 +96,8 @@ const evaluarSolicitud = async (req, res) => {
     if (!solicitud) return res.status(404).json({ exito: false, mensaje: 'Solicitud no encontrada' });
 
     solicitud.estado = estado;
+    // Una nueva evaluación del admin reinicia la respuesta del cliente
+    solicitud.respuestaCliente = null;
     if (ofertaAdmin !== undefined && ofertaAdmin !== null && ofertaAdmin !== '') {
       solicitud.ofertaAdmin = Number(ofertaAdmin);
     }
@@ -110,7 +112,61 @@ const evaluarSolicitud = async (req, res) => {
   }
 };
 
+// PUT /api/tradein/:id/responder  (cliente dueño)
+// body: { aceptar: true|false }  o  { montoPropuesto: number }  (el cliente propone otro monto)
+// Solo se puede responder cuando el estado es 'contraoferta'.
+const responderContraoferta = async (req, res) => {
+  try {
+    const { aceptar, montoPropuesto } = req.body;
+    const proponeMonto = montoPropuesto !== undefined && montoPropuesto !== null && montoPropuesto !== '';
+    if (!proponeMonto && typeof aceptar !== 'boolean') {
+      return res.status(400).json({ exito: false, mensaje: 'Debes aceptar, rechazar o proponer otro monto' });
+    }
+
+    const solicitud = await TradeIn.findById(req.params.id);
+    if (!solicitud) return res.status(404).json({ exito: false, mensaje: 'Solicitud no encontrada' });
+    if (solicitud.usuario.toString() !== req.usuario._id.toString()) {
+      return res.status(403).json({ exito: false, mensaje: 'Sin permiso para responder esta solicitud' });
+    }
+    if (solicitud.estado !== 'contraoferta') {
+      return res.status(400).json({ exito: false, mensaje: 'Esta solicitud no tiene una contraoferta pendiente' });
+    }
+
+    if (proponeMonto) {
+      const monto = Number(montoPropuesto);
+      if (isNaN(monto) || monto < 0) {
+        return res.status(400).json({ exito: false, mensaje: 'El monto propuesto debe ser un número mayor o igual a 0' });
+      }
+      // Vuelve a revisión para que el admin evalúe la propuesta del cliente
+      solicitud.estado = 'en_revision';
+      solicitud.respuestaCliente = 'contraoferta';
+      solicitud.contraofertaCliente = monto;
+      solicitud.historial.push({ estado: 'en_revision', nota: `El cliente propuso un nuevo monto: ${monto}` });
+      await solicitud.save();
+      return res.status(200).json({ exito: true, mensaje: 'Propuesta enviada', datos: { solicitud } });
+    }
+
+    solicitud.estado = aceptar ? 'aprobado' : 'rechazado';
+    solicitud.respuestaCliente = aceptar ? 'aceptada' : 'rechazada';
+    solicitud.historial.push({
+      estado: solicitud.estado,
+      nota: aceptar ? 'El cliente aceptó la contraoferta' : 'El cliente rechazó la contraoferta'
+    });
+    await solicitud.save();
+
+    res.status(200).json({
+      exito: true,
+      mensaje: aceptar ? 'Contraoferta aceptada' : 'Contraoferta rechazada',
+      datos: { solicitud }
+    });
+  } catch (error) {
+    console.error('Error al responder contraoferta:', error);
+    res.status(500).json({ exito: false, mensaje: 'Error al responder la contraoferta' });
+  }
+};
+
 module.exports = {
+  responderContraoferta,
   crearSolicitud,
   misSolicitudes,
   detalleSolicitud,

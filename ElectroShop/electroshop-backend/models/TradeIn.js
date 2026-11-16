@@ -39,6 +39,11 @@ const tradeInSchema = new mongoose.Schema(
     ofertaAdmin: { type: Number, min: 0, default: null }, // crédito ofrecido
     notaAdmin: { type: String, default: '' },
 
+    // Respuesta del cliente a una contraoferta
+    respuestaCliente: { type: String, enum: ['aceptada', 'rechazada', 'contraoferta', null], default: null },
+    contraofertaCliente: { type: Number, min: 0, default: null }, // monto que propone el cliente
+
+
     historial: [
       {
         estado: String,

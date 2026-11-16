@@ -12,13 +12,14 @@ const validarFiltroEstado = [
     .isIn(['solicitado', 'en_revision', 'aprobado', 'rechazado', 'contraoferta']).withMessage('El estado indicado no es válido'),
   manejarErroresValidacion
 ];
-const { validarCrearTradeIn, validarEvaluarTradeIn } = require('../validators/tradeInValidators');
+const { validarCrearTradeIn, validarEvaluarTradeIn, validarResponderTradeIn } = require('../validators/tradeInValidators');
 const {
   crearSolicitud,
   misSolicitudes,
   detalleSolicitud,
   listarAdmin,
-  evaluarSolicitud
+  evaluarSolicitud,
+  responderContraoferta
 } = require('../controllers/tradeInController');
 
 // Todas requieren autenticación
@@ -31,6 +32,7 @@ router.put('/:id/evaluar', autorizarRol('admin'), validarId(), validarEvaluarTra
 // Cliente
 router.post('/', validarCrearTradeIn, crearSolicitud);
 router.get('/mias', misSolicitudes);
+router.put('/:id/responder', validarId(), validarResponderTradeIn, responderContraoferta);
 router.get('/:id', validarId(), detalleSolicitud);
 
 module.exports = router;
