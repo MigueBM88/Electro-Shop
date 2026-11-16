@@ -686,3 +686,17 @@ body.admin-layout .admin-main > .container { max-width: 1200px; }
   .es-perfil .profile-field { grid-template-columns: 1fr; gap: 0.15rem; }
   .es-page-head h1 { font-size: 1.35rem; }
 }
+
+
+/* === Modal informativo (mostrarInfoModal): colores por tipo === */
+.es-info-modal { border-top: 5px solid var(--primary); }
+.es-info-modal .es-error-icon { background: var(--primary-light); color: var(--primary); }
+.es-info-success { border-top-color: var(--success); }
+.es-info-success .es-error-icon { background: var(--success-light); color: var(--success); }
+.es-info-success h3 { color: var(--success); }
+.es-info-success .es-info-cerrar { background: var(--success); border-color: var(--success); }
+.es-info-warning { border-top-color: var(--warning); }
+.es-info-warning .es-error-icon { background: var(--warning-light); color: #b45309; }
+.es-info-warning h3 { color: #b45309; }
+.es-info-warning .es-info-cerrar { background: var(--warning); border-color: var(--warning); color: #1f2937; }
+.es-info-modal .es-info-cerrar:hover { filter: brightness(0.92); }
