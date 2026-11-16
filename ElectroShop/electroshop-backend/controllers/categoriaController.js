@@ -20,10 +20,31 @@ const erroresValidacion = (req, res) => {
 // PÚBLICO
 // ============================================
 
+// Agrega cantidadProductos (productos activos) a cada categoría.
+// Para una categoría principal también suma los de sus subcategorías.
+const agregarConteos = async (categorias) => {
+  const lista = categorias.map((c) => (c.toObject ? c.toObject() : c));
+  if (!lista.length) return lista;
+  const ids = lista.map((c) => c._id);
+  const subs = await Categoria.find({ padre: { $in: ids } }).select('_id padre').lean();
+  const todosIds = ids.concat(subs.map((s) => s._id));
+  const conteos = await Producto.aggregate([
+    { $match: { activo: true, categoria: { $in: todosIds } } },
+    { $group: { _id: '$categoria', n: { $sum: 1 } } }
+  ]);
+  const porCat = new Map(conteos.map((c) => [c._id.toString(), c.n]));
+  return lista.map((c) => {
+    const id = c._id.toString();
+    let total = porCat.get(id) || 0;
+    subs.forEach((s) => { if (s.padre.toString() === id) total += porCat.get(s._id.toString()) || 0; });
+    return { ...c, cantidadProductos: total };
+  });
+};
+
 // GET /api/categorias  -> categorías principales (padre = null)
 const listarPrincipales = async (req, res) => {
   try {
-    const categorias = await Categoria.find({ padre: null, activa: true }).sort({ nombre: 1 });
+    const categorias = await agregarConteos(await Categoria.find({ padre: null, activa: true }).sort({ nombre: 1 }));
     res.status(200).json({ exito: true, datos: { categorias } });
   } catch (error) {
     console.error('Error al listar categorías:', error);
@@ -34,7 +55,7 @@ const listarPrincipales = async (req, res) => {
 // GET /api/categorias/:id/subcategorias
 const listarSubcategorias = async (req, res) => {
   try {
-    const subcategorias = await Categoria.find({ padre: req.params.id, activa: true }).sort({ nombre: 1 });
+    const subcategorias = await agregarConteos(await Categoria.find({ padre: req.params.id, activa: true }).sort({ nombre: 1 }));
     res.status(200).json({ exito: true, datos: { subcategorias } });
   } catch (error) {
     console.error('Error al listar subcategorías:', error);

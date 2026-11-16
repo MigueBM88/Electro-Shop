@@ -50,7 +50,9 @@ const productosPorCategoria = async (req, res) => {
     const limite = parseInt(req.query.limite) || 12;
     const salto = (pagina - 1) * limite;
 
-    const filtro = { categoria: req.params.catId, activo: true };
+    // Incluye los productos de las subcategorías (si es una categoría principal)
+    const subs = await Categoria.find({ padre: req.params.catId }).select('_id');
+    const filtro = { categoria: { $in: [req.params.catId, ...subs.map((s) => s._id)] }, activo: true };
 
     const [productos, total] = await Promise.all([
       Producto.find(filtro).populate('categoria', 'nombre icono').sort({ createdAt: -1 }).skip(salto).limit(limite),
