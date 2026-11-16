@@ -490,6 +490,33 @@ function confirmarModal(mensaje, titulo, textoAceptar) {
     });
 }
 
+// Modal informativo (exito / advertencia / info). Mismo estilo que el modal de error.
+// tipo: 'success' | 'warning' | 'info'. Devuelve una Promise que se resuelve al cerrar.
+// Uso: mostrarInfoModal('Tu pedido fue registrado.', '¡Listo!', 'success');
+function mostrarInfoModal(mensaje, titulo, tipo) {
+    return new Promise(function(resolve) {
+        $('#esInfoModal').remove();
+        var iconos = { success: '✅', warning: '⚠️', info: 'ℹ️' };
+        var t = iconos[tipo] ? tipo : 'info';
+        var $overlay = $('<div>', { id: 'esInfoModal', 'class': 'es-error-overlay', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'esInfoTitulo' });
+        var $caja = $('<div>', { 'class': 'es-error-modal es-info-modal es-info-' + t })
+            .append($('<div>', { 'class': 'es-error-icon', 'aria-hidden': 'true' }).text(iconos[t]))
+            .append($('<h3>', { id: 'esInfoTitulo' }).text(titulo || 'Aviso'))
+            .append($('<div>', { 'class': 'es-error-body' }).append($('<p>').text(mensaje)))
+            .append($('<button>', { type: 'button', 'class': 'btn btn-primary es-info-cerrar' }).text('Entendido'));
+        function cerrar() {
+            $(document).off('keydown.esInfo');
+            $overlay.remove();
+            resolve();
+        }
+        $caja.on('click', '.es-info-cerrar', cerrar);
+        $overlay.on('click', function(e) { if (e.target === this) cerrar(); });
+        $(document).on('keydown.esInfo', function(e) { if (e.key === 'Escape') cerrar(); });
+        $overlay.append($caja).appendTo('body');
+        $caja.find('.es-info-cerrar').trigger('focus');
+    });
+}
+
 
 // Mostrar / ocultar contraseña (login y registro)
 $(document).on('click', '.auth-ver-pass', function() {

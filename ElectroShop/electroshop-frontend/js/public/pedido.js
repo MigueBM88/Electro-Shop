@@ -22,7 +22,7 @@ $(function() {
             var p = r.datos.pedido;
 
             if (esNuevo) {
-                mostrarAlerta('alerta', 'success', '🎉 ' + (p.pago.estado === 'aprobado' ? '¡Pago aprobado! ' : '') + 'Tu pedido ' + p.numero + ' fue registrado correctamente.');
+                mostrarInfoModal('Tu pedido ' + p.numero + ' fue registrado correctamente.', (p.pago.estado === 'aprobado' ? '🎉 ¡Pago aprobado!' : '🎉 ¡Pedido registrado!'), 'success');
             }
 
             var dir = p.direccionEnvio || {};

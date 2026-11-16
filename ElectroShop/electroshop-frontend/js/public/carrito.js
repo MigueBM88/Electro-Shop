@@ -17,7 +17,7 @@ $(function() {
 
             var d = r.datos;
             if (d.ajustado) {
-                mostrarAlerta('alerta', 'warning', 'Algunos productos se ajustaron por cambios de stock o disponibilidad.');
+                mostrarInfoModal('Algunos productos de tu carrito se ajustaron por cambios de stock o disponibilidad. Revisa las cantidades y el total antes de continuar.', 'Tu carrito cambió', 'warning');
             }
 
             if (d.items.length === 0) {

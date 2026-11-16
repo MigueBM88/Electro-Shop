@@ -67,7 +67,7 @@ $(function() {
         try {
             var r = await apiCrearTradeIn(datos);
             if (r.exito) {
-                mostrarAlerta('alerta', 'success', 'Solicitud enviada. Te avisaremos cuando la evaluemos.');
+                mostrarInfoModal('Recibimos tu solicitud de Trade-In. Te avisaremos cuando la evaluemos.', 'Solicitud enviada', 'success');
                 $('#nombreEquipo').val('');
                 $('#descripcion').val('');
                 $('#precioEstimado').val('');
