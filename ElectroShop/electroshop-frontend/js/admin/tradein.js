@@ -7,27 +7,6 @@ $(function() {
 
     var esc = escaparHtml;
 
-    var ESTADO_TI = {
-        solicitado: { t: 'Solicitado', b: 'badge-warning' },
-        en_revision: { t: 'En revisión', b: 'badge-primary' },
-        aprobado: { t: 'Aprobado', b: 'badge-success' },
-        rechazado: { t: 'Rechazado', b: 'badge-danger' },
-        contraoferta: { t: 'Contraoferta', b: 'badge-warning' }
-    };
-    function tiBadge(e) { var m = ESTADO_TI[e] || { t: e, b: 'badge-primary' }; return '<span class="badge ' + m.b + '">' + esc(m.t) + '</span>'; }
-
-    // Historial desplegable de la solicitud (más reciente primero)
-    function historialHTML(hist) {
-        if (!hist || !hist.length) return '';
-        return '<details class="es-ti-historial" style="margin-top:0.5rem;font-size:0.8rem">' +
-            '<summary style="cursor:pointer">Ver historial (' + hist.length + ')</summary>' +
-            '<ul style="margin:0.4rem 0 0 1rem;padding:0">' +
-            hist.slice().reverse().map(function(h) {
-                return '<li style="margin-bottom:0.3rem">' + tiBadge(h.estado) + ' <span class="text-muted">' + formatFecha(h.fecha) + '</span>' +
-                    (h.nota ? '<div>' + esc(h.nota) + '</div>' : '') + '</li>';
-            }).join('') +
-            '</ul></details>';
-    }
 
     async function cargar() {
         var $cont = $('#lista');
@@ -53,7 +32,7 @@ $(function() {
                     (s.respuestaCliente === 'contraoferta' ? '<div class="es-meta"><strong>🔁 El cliente propone:</strong> ' + formatPrecio(s.contraofertaCliente) + '</div>' : '') +
                     ((s.respuestaCliente === 'aceptada' || s.respuestaCliente === 'rechazada') ? '<div class="es-meta"><strong>Respuesta del cliente:</strong> ' + (s.respuestaCliente === 'aceptada' ? '✅ Aceptó la contraoferta' : '❌ Rechazó la contraoferta') + '</div>' : '') +
                     (s.estado === 'contraoferta' ? '<div class="es-meta text-muted">Esperando respuesta del cliente</div>' : '') +
-                    historialHTML(s.historial) +
+                    tiHistorialHTML(s.historial) +
                     (s.respuestaCliente === 'contraoferta' && s.contraofertaCliente != null ? '<button type="button" class="btn btn-sm btn-success" style="margin-top:0.5rem;margin-right:0.5rem;width:auto" data-action="aceptar-propuesta" data-id="' + esc(s._id) + '" data-nombre="' + esc(s.nombreEquipo) + '" data-monto="' + esc(s.contraofertaCliente) + '">✅ Aceptar propuesta (' + formatPrecio(s.contraofertaCliente) + ')</button>' : '') +
                     '<button class="btn btn-sm btn-primary" style="margin-top:0.5rem;width:auto" data-action="abrir-eval" data-id="' + esc(s._id) + '" data-nombre="' + esc(s.nombreEquipo) + '" data-oferta="' + esc(s.respuestaCliente === 'contraoferta' && s.contraofertaCliente != null ? s.contraofertaCliente : (s.ofertaAdmin || 0)) + '">Evaluar</button>' +
                     '</div>';

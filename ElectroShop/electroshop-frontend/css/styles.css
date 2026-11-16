@@ -729,3 +729,9 @@ body.modal-abierto { overflow: hidden; }
 .es-toast-cerrar:hover { opacity: 1; }
 [data-theme="dark"] .es-toast { background: #1f2937; color: #f3f4f6; }
 @media (prefers-reduced-motion: reduce) { .es-toast { transition: none; } }
+
+/* === Historial de Trade-In === */
+.es-ti-historial { margin-top: 0.5rem; font-size: 0.8rem; }
+.es-ti-historial summary { cursor: pointer; }
+.es-ti-historial ul { margin: 0.4rem 0 0 1rem; padding: 0; }
+.es-ti-historial li { margin-bottom: 0.3rem; }

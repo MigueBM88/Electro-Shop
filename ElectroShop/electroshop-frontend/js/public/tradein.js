@@ -8,14 +8,6 @@ $(function() {
 
     var esc = escaparHtml;
 
-    var ESTADO_TI = {
-        solicitado: { t: 'Solicitado', b: 'badge-warning' },
-        en_revision: { t: 'En revisión', b: 'badge-primary' },
-        aprobado: { t: 'Aprobado', b: 'badge-success' },
-        rechazado: { t: 'Rechazado', b: 'badge-danger' },
-        contraoferta: { t: 'Contraoferta', b: 'badge-warning' }
-    };
-    function tiBadge(e) { var m = ESTADO_TI[e] || { t: e, b: 'badge-primary' }; return '<span class="badge ' + m.b + '">' + esc(m.t) + '</span>'; }
 
     async function cargar() {
         var $cont = $('#listaSolicitudes');
@@ -44,17 +36,7 @@ $(function() {
                 } else if (s.respuestaCliente) {
                     acciones = '<div class="es-meta text-muted">Tu respuesta: ' + (s.respuestaCliente === 'aceptada' ? 'aceptaste la contraoferta' : 'rechazaste la contraoferta') + '</div>';
                 }
-                var historial = '';
-                if (s.historial && s.historial.length) {
-                    historial = '<details class="es-ti-historial" style="margin-top:0.5rem;font-size:0.8rem">' +
-                        '<summary style="cursor:pointer">Ver historial (' + s.historial.length + ')</summary>' +
-                        '<ul style="margin:0.4rem 0 0 1rem;padding:0">' +
-                        s.historial.slice().reverse().map(function(h) {
-                            return '<li style="margin-bottom:0.3rem">' + tiBadge(h.estado) + ' <span class="text-muted">' + formatFecha(h.fecha) + '</span>' +
-                                (h.nota ? '<div>' + esc(h.nota) + '</div>' : '') + '</li>';
-                        }).join('') +
-                        '</ul></details>';
-                }
+                var historial = tiHistorialHTML(s.historial);
                 var nota = s.notaAdmin ? '<div class="es-meta text-muted">Nota: ' + esc(s.notaAdmin) + '</div>' : '';
                 return '<div class="card es-tradein-item es-ti-' + esc(s.estado) + '">' +
                     '<div class="es-fila">' +
