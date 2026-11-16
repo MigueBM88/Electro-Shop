@@ -518,6 +518,87 @@ function mostrarInfoModal(mensaje, titulo, tipo) {
 }
 
 
+// ============================================
+// Modales de formulario (.modal-overlay): comportamiento común
+//  - Escape o clic en el fondo los cierra.
+//  - Al abrir: foco al primer campo y Tab queda atrapado dentro del modal.
+//  - Al cerrar: el foco vuelve al botón que lo abrió.
+// Funciona con el código existente ($('#x').addClass('visible')) gracias al
+// MutationObserver, y también con los helpers esAbrirModal(id) / esCerrarModal(id).
+// ============================================
+var FOCUSABLES = 'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+// Nombres con prefijo 'es' para no chocar con los cerrarModal() propios de cada página
+function esAbrirModal(id) { $('#' + id).addClass('visible'); }
+function esCerrarModal(id) {
+    if (id) $('#' + id).removeClass('visible');
+    else $('.modal-overlay.visible').last().removeClass('visible');
+}
+
+function prepararModal(el) {
+    var $ov = $(el);
+    var $caja = $ov.children('.modal').first();
+    $ov.attr({ role: 'dialog', 'aria-modal': 'true' });
+    var $titulo = $caja.find('h2, h3').first();
+    if ($titulo.length) {
+        if (!$titulo.attr('id')) $titulo.attr('id', ($ov.attr('id') || 'modal') + 'Titulo');
+        $ov.attr('aria-labelledby', $titulo.attr('id'));
+    }
+}
+
+function alCambiarModal(el) {
+    var $ov = $(el);
+    var visible = $ov.hasClass('visible');
+    if (visible && !$ov.data('esAbierto')) {
+        $ov.data('esAbierto', true);
+        $ov.data('esFocoPrevio', document.activeElement);
+        $('body').addClass('modal-abierto');
+        setTimeout(function() {
+            var $f = $ov.find('input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled])').filter(':visible').first();
+            ($f.length ? $f : $ov.find(FOCUSABLES).filter(':visible').first()).trigger('focus');
+        }, 30);
+    } else if (!visible && $ov.data('esAbierto')) {
+        $ov.data('esAbierto', false);
+        if (!$('.modal-overlay.visible').length) $('body').removeClass('modal-abierto');
+        var previo = $ov.data('esFocoPrevio');
+        if (previo && document.body.contains(previo)) $(previo).trigger('focus');
+    }
+}
+
+$(function() {
+    $('.modal-overlay').each(function() { prepararModal(this); });
+    if (window.MutationObserver) {
+        var obs = new MutationObserver(function(muts) {
+            $.each(muts, function(_, m) { if ($(m.target).hasClass('modal-overlay')) alCambiarModal(m.target); });
+        });
+        $('.modal-overlay').each(function() { obs.observe(this, { attributes: true, attributeFilter: ['class'] }); });
+    }
+});
+
+// Escape cierra el modal de formulario de arriba (si no hay un modal de error/confirmación encima)
+$(document).on('keydown', function(e) {
+    if (e.key !== 'Escape') return;
+    if ($('#esErrorModal, #esConfirmModal, #esInfoModal').length) return;
+    $('.modal-overlay.visible').last().removeClass('visible');
+});
+
+// Clic en el fondo oscuro (no dentro de la caja) cierra el modal
+$(document).on('mousedown', '.modal-overlay.visible', function(e) {
+    if (e.target === this) $(this).removeClass('visible');
+});
+
+// Tab / Shift+Tab se quedan dentro del modal abierto
+$(document).on('keydown', '.modal-overlay.visible', function(e) {
+    if (e.key !== 'Tab') return;
+    var $f = $(this).find(FOCUSABLES).filter(':visible');
+    if (!$f.length) return;
+    var primero = $f.get(0), ultimo = $f.get($f.length - 1);
+    if (e.shiftKey && document.activeElement === primero) { e.preventDefault(); ultimo.focus(); }
+    else if (!e.shiftKey && document.activeElement === ultimo) { e.preventDefault(); primero.focus(); }
+});
+
+$.extend(window, { esAbrirModal: esAbrirModal, esCerrarModal: esCerrarModal });
+
 // Mostrar / ocultar contraseña (login y registro)
 $(document).on('click', '.auth-ver-pass', function() {
     var $input = $('#' + $(this).data('target'));

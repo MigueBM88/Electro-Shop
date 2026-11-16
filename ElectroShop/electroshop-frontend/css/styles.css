@@ -700,3 +700,18 @@ body.admin-layout .admin-main > .container { max-width: 1200px; }
 .es-info-warning h3 { color: #b45309; }
 .es-info-warning .es-info-cerrar { background: var(--warning); border-color: var(--warning); color: #1f2937; }
 .es-info-modal .es-info-cerrar:hover { filter: brightness(0.92); }
+
+/* Evita que la página de fondo haga scroll con un modal abierto */
+body.modal-abierto { overflow: hidden; }
+
+/* === Utilidades (reemplazan estilos en línea repetidos) === */
+.es-mb-3 { margin-bottom:0.75rem !important }
+.es-meta { font-size:0.8rem !important;margin-top:0.3rem !important }
+.es-w-auto { width:auto !important }
+.es-txt-xs { font-size:0.72rem !important }
+.es-fila-total { display:flex !important;justify-content:space-between !important;margin-bottom:0.4rem !important }
+.es-my-2 { margin-top:0.5rem !important;margin-bottom:0.5rem !important }
+.es-mb-2 { margin-bottom:0.5rem !important }
+.es-txt-sm { font-size:0.8rem !important }
+.es-fila { display:flex !important;justify-content:space-between !important;align-items:center !important }
+.es-txt-primary { color:var(--primary) !important }
