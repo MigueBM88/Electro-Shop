@@ -35,10 +35,11 @@ ElectroShop/
 
 - **Autenticación:** registro, inicio de sesión con JWT, perfil y bloqueo por intentos fallidos.
 - **Roles:** `cliente`, `admin` y `vendedor`.
-- **Catálogo:** productos, categorías, búsqueda y detalle de producto.
+- **Catálogo:** productos, categorías (con cantidad de productos, incluidas las subcategorías), búsqueda y detalle de producto.
+- **Búsqueda avanzada:** texto (nombre, marca, SKU y descripción), categoría con sus subcategorías, marca, rango de precio, disponibilidad y condición. Se puede ordenar por precio, nombre, más recientes o **calificación** (promedio de reseñas publicadas).
 - **Compras:** carrito, checkout y seguimiento de pedidos.
 - **Reseñas** de productos.
-- **Trade‑In:** el cliente ofrece equipos usados a cambio de crédito.
+- **Trade‑In:** el cliente ofrece equipos usados a cambio de crédito. Ante una contraoferta del admin, el cliente puede **aceptarla, rechazarla o proponer otro monto**, y el admin puede aprobar la propuesta con un clic. Cliente y admin ven el **historial** de cada solicitud.
 - **Panel admin:** usuarios, categorías, productos, pedidos, inventario, reseñas, reportes y trade‑in.
 - **Panel vendedor:** gestión de sus productos y ventas.
 - **Notificaciones por correo** con Nodemailer.
@@ -60,12 +61,17 @@ Diseño propio inspirado en los ejemplos oficiales de Bootstrap 5, hecho con CSS
 
 - **Modal de error reutilizable** (`mostrarErrorModal`) para errores del servidor y de conexión, en lugar de `alert()`.
 - **Modal de confirmación** (`confirmarModal`, devuelve una Promise) en lugar de `confirm()`.
+- **Modal informativo** (`mostrarInfoModal(mensaje, titulo, tipo)`) con estilos `success`, `warning` e `info`, para avisos importantes (carrito ajustado por stock, pedido registrado, Trade-In enviado).
+- **Toasts** (`mostrarToast`): los mensajes de éxito aparecen en la esquina inferior derecha y se ocultan solos a los 4 segundos. `mostrarAlerta(..., 'success', ...)` los usa automáticamente.
+- **Modales de formulario** (`.modal-overlay`): se cierran con Esc o con clic en el fondo, el foco queda dentro del modal y vuelve al botón que lo abrió.
+- **`apiFetch`** en `js/api.js`: todas las llamadas a la API pasan por aquí. Si la sesión expira (401) se cierra con un aviso, y los errores de red devuelven `{ exito: false, mensaje }` en vez de romper la página.
 - **Validación en línea:** cada campo muestra su error debajo, con borde rojo y foco en el primer campo inválido (`marcarCampoError`, `limpiarErrores`).
 - Las reglas del frontend coinciden con las de `validators/` y `models/` del backend (longitudes, enteros, teléfono de 8 dígitos, etc.).
 
 ### Accesibilidad
 
 - **Modo oscuro** con contraste revisado (mínimo 4.5:1, según WCAG AA) en alertas, enlaces, etiquetas y botones.
+- Todas las etiquetas `<label>` están asociadas a su campo con `for`.
 - Atributos ARIA en modales, menús y campos con error, navegación con teclado (Tab, Enter y Esc) y respeto de `prefers-reduced-motion`.
 
 ## 🛠️ Requisitos
@@ -177,7 +183,7 @@ Las URLs antiguas con `/public/...` se redirigen automáticamente a la nueva rut
 | `/api/resenas` | Reseñas |
 | `/api/inventario` | Inventario |
 | `/api/reportes` | Reportes |
-| `/api/tradein` | Trade‑In |
+| `/api/tradein` | Trade‑In (incluye `PUT /:id/responder` para que el cliente responda una contraoferta) |
 | `/api/vendedor` | Vendedores externos |
 
 ## 🧰 Tecnologías
@@ -221,10 +227,11 @@ ElectroShop/
 
 - **Authentication:** sign‑up, JWT login, profile, and lockout after failed attempts.
 - **Roles:** `cliente` (customer), `admin`, and `vendedor` (seller).
-- **Catalog:** products, categories, search, and product detail.
+- **Catalog:** products, categories (with product counts, including subcategories), search, and product detail.
+- **Advanced search:** text (name, brand, SKU, and description), category with its subcategories, brand, price range, availability, and condition. Sort by price, name, newest, or **rating** (average of published reviews).
 - **Shopping:** cart, checkout, and order tracking.
 - **Product reviews.**
-- **Trade‑In:** customers offer used devices in exchange for credit.
+- **Trade‑In:** customers offer used devices in exchange for credit. When the admin sends a counteroffer, the customer can **accept it, reject it, or propose another amount**, and the admin can approve that proposal in one click. Both see each request's **history**.
 - **Admin panel:** users, categories, products, orders, inventory, reviews, reports, and trade‑in.
 - **Seller panel:** manage their own products and sales.
 - **Email notifications** with Nodemailer.
@@ -246,12 +253,17 @@ Custom design inspired by the official Bootstrap 5 examples, built with the proj
 
 - **Reusable error modal** (`mostrarErrorModal`) for server and connection errors instead of `alert()`.
 - **Confirmation modal** (`confirmarModal`, returns a Promise) instead of `confirm()`.
+- **Info modal** (`mostrarInfoModal(mensaje, titulo, tipo)`) with `success`, `warning`, and `info` styles, for important notices (cart adjusted by stock, order placed, Trade-In submitted).
+- **Toasts** (`mostrarToast`): success messages appear in the bottom-right corner and hide after 4 seconds. `mostrarAlerta(..., 'success', ...)` uses them automatically.
+- **Form modals** (`.modal-overlay`): close with Esc or a click on the backdrop, focus is trapped inside, and it returns to the button that opened them.
+- **`apiFetch`** in `js/api.js`: every API call goes through it. An expired session (401) signs the user out with a notice, and network errors return `{ exito: false, mensaje }` instead of throwing.
 - **Inline validation:** each field shows its error below it, with a red border and focus on the first invalid field (`marcarCampoError`, `limpiarErrores`).
 - Frontend rules match the backend `validators/` and `models/` (lengths, integers, 8-digit phone, etc.).
 
 ### Accessibility
 
 - **Dark mode** with reviewed contrast (at least 4.5:1, per WCAG AA) for alerts, links, badges, and buttons.
+- Every `<label>` is linked to its field with `for`.
 - ARIA attributes on modals, menus, and invalid fields, keyboard navigation (Tab, Enter, and Esc), and support for `prefers-reduced-motion`.
 
 ## 🛠️ Requirements
@@ -330,7 +342,7 @@ Old `/public/...` URLs are redirected to the new paths automatically.
 | `/api/resenas` | Reviews |
 | `/api/inventario` | Inventory |
 | `/api/reportes` | Reports |
-| `/api/tradein` | Trade‑In |
+| `/api/tradein` | Trade‑In (includes `PUT /:id/responder` so the customer can answer a counteroffer) |
 | `/api/vendedor` | External sellers |
 
 ## 🧰 Tech stack
