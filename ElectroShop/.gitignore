@@ -1,0 +1,7 @@
+
+# Respaldos
+*.bak
+
+# Dependencias y secretos
+node_modules/
+.env
