@@ -363,6 +363,20 @@ function condicionBadge(condicion) {
     return '<span class="badge ' + (c[condicion] || 'badge-primary') + '">' + escaparHtml(t[condicion] || condicion) + '</span>';
 }
 
+// === Estrellas de calificación (★ 4.5 (12)) ===
+// Sin reseñas muestra "Sin reseñas". Si el dato no viene, no muestra nada.
+function estrellasHTML(promedio, cantidad) {
+    if (promedio === undefined || promedio === null) return '';
+    if (!cantidad) return '<div class="es-card-rating es-card-rating-vacio">Sin reseñas</div>';
+    var llenas = Math.round(promedio);
+    var est = '';
+    for (var i = 1; i <= 5; i++) est += (i <= llenas ? '★' : '☆');
+    return '<div class="es-card-rating" aria-label="Calificación ' + escaparHtml(promedio) + ' de 5, ' + escaparHtml(cantidad) + ' reseñas">' +
+        '<span class="es-estrellas" aria-hidden="true">' + est + '</span> ' +
+        '<span class="es-rating-num">' + escaparHtml(Number(promedio).toFixed(1)) + '</span> ' +
+        '<span class="es-rating-cant">(' + escaparHtml(cantidad) + ')</span></div>';
+}
+
 // === Render tarjeta de producto (reutilizable) ===
 // Click y hover se manejan con handlers delegados ([data-href] / [data-hover]).
 function renderProductCard(p) {
@@ -384,6 +398,7 @@ function renderProductCard(p) {
         '<div class="es-card-meta">' + escaparHtml(p.marca || 'Genérico') + ' ' + condicionBadge(p.condicion) + '</div>' +
         '<h3 class="es-card-titulo">' + escaparHtml(p.nombre) + '</h3>' +
         '<div class="es-card-precios">' + precioHTML + '</div>' +
+        estrellasHTML(p.promedioCalificacion, p.cantidadResenas) +
         '<div class="es-card-stock">' + stockBadge(p.stock) + '</div>' +
         '<span class="es-card-cta">Ver detalle →</span>' +
         '</div></article>';

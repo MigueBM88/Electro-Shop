@@ -735,3 +735,9 @@ body.modal-abierto { overflow: hidden; }
 .es-ti-historial summary { cursor: pointer; }
 .es-ti-historial ul { margin: 0.4rem 0 0 1rem; padding: 0; }
 .es-ti-historial li { margin-bottom: 0.3rem; }
+
+/* === Estrellas en tarjetas de producto === */
+.es-card-rating { font-size: 0.8rem; margin: 0.2rem 0; display: flex; align-items: center; gap: 0.25rem; }
+.es-estrellas { color: #f5a623; letter-spacing: 1px; }
+.es-rating-num { font-weight: 600; }
+.es-rating-cant, .es-card-rating-vacio { color: var(--gray-500); }

@@ -43,6 +43,26 @@ const construirPaginacion = (total, pagina, limite) => ({
 // PÚBLICO
 // ============================================
 
+// Agrega promedioCalificacion y cantidadResenas (reseñas publicadas) a una lista de productos.
+// Una sola consulta para toda la lista. Si el producto ya trae los datos, se respetan.
+const agregarCalificaciones = async (productos) => {
+  const lista = productos.map((p) => (p && p.toJSON ? p.toJSON() : p));
+  const faltan = lista.filter((p) => p && p.promedioCalificacion === undefined);
+  if (!faltan.length) return lista;
+  const ids = faltan.map((p) => new mongoose.Types.ObjectId(String(p._id)));
+  const stats = await Resena.aggregate([
+    { $match: { producto: { $in: ids }, estado: 'publicada' } },
+    { $group: { _id: '$producto', promedio: { $avg: '$calificacion' }, cantidad: { $sum: 1 } } }
+  ]);
+  const porId = new Map(stats.map((s) => [s._id.toString(), s]));
+  faltan.forEach((p) => {
+    const s = porId.get(String(p._id));
+    p.promedioCalificacion = s ? Math.round(s.promedio * 10) / 10 : 0;
+    p.cantidadResenas = s ? s.cantidad : 0;
+  });
+  return lista;
+};
+
 // GET /api/productos/categoria/:catId
 const productosPorCategoria = async (req, res) => {
   try {
@@ -61,7 +81,7 @@ const productosPorCategoria = async (req, res) => {
 
     res.status(200).json({
       exito: true,
-      datos: { productos, paginacion: construirPaginacion(total, pagina, limite) }
+      datos: { productos: await agregarCalificaciones(productos), paginacion: construirPaginacion(total, pagina, limite) }
     });
   } catch (error) {
     console.error('Error al listar productos por categoría:', error);
@@ -198,7 +218,11 @@ const buscarProductos = async (req, res) => {
 
     res.status(200).json({
       exito: true,
-      datos: { productos, sugerencias, paginacion: construirPaginacion(total, pagina, limite) }
+      datos: {
+        productos: await agregarCalificaciones(productos),
+        sugerencias: await agregarCalificaciones(sugerencias),
+        paginacion: construirPaginacion(total, pagina, limite)
+      }
     });
   } catch (error) {
     console.error('Error al buscar productos:', error);
